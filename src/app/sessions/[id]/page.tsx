@@ -111,7 +111,7 @@ export default async function SessionPage({ params }: { params: { id: string } }
                     <StaggerContainer className="flex flex-col gap-12">
                         {session.artists.map((artist: any, idx: number) => (
                             <FadeIn key={artist.id}>
-                                <Link href={`/sessions/${session.id}/artist/${artist.id}`} className="group block w-full focus:outline-none">
+                                <Link href={`/sessions/${session.id}/artist/${artist.id}`} className="group block w-full focus:outline-none active:scale-[0.98] transition-transform duration-200 ease-out">
                                     <div className="w-full flex flex-col md:flex-row relative bg-black border border-[#333] group-hover:border-white transition-colors duration-700 overflow-hidden">
 
                                         {/* FONDO GENERATIVO ANIMADO (Repulsión por Mouse) */}
@@ -147,7 +147,7 @@ export default async function SessionPage({ params }: { params: { id: string } }
                                             </div>
                                             <div className="flex flex-col items-center sm:items-end">
                                                 <span className="font-mono text-[10px] bg-white text-black px-2 py-0.5 uppercase tracking-widest font-bold mb-2 inline-block">ARTISTA 0{idx + 1}</span>
-                                                <h3 className="text-4xl md:text-5xl lg:text-5xl font-bold uppercase tracking-tighter text-white leading-none break-all">
+                                                <h3 className="max-w-full text-[clamp(2.5rem,8vw,4rem)] lg:text-[5rem] text-right font-bold uppercase tracking-tighter text-white leading-[0.85] break-words">
                                                     {artist.name}
                                                 </h3>
                                             </div>

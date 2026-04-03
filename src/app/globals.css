@@ -53,6 +53,10 @@
   h6 {
     @apply font-mono uppercase tracking-tight;
   }
+
+  a, button, [role="button"] {
+    @apply transition-transform active:scale-[0.98] duration-200;
+  }
 }
 
 /* Brutalist Custom Classes */
