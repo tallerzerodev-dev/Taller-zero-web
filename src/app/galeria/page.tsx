@@ -44,7 +44,7 @@ export default async function GaleriaPage({
                             >
                                 TODO
                             </Link>
-                            {sessions.map(s => (
+                            {sessions.map((s: any) => (
                                 <Link
                                     key={s.id}
                                     href={`/galeria?session=${s.id}`}
