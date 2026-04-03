@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #000000;
+    --foreground: #FFFFFF;
+
+    --card: #111111;
+    --card-foreground: #FFFFFF;
+
+    --popover: #111111;
+    --popover-foreground: #FFFFFF;
+
+    --primary: #FFFFFF;
+    --primary-foreground: #000000;
+
+    --secondary: #222222;
+    --secondary-foreground: #FFFFFF;
+
+    --muted: #222222;
+    --muted-foreground: #888888;
+
+    --accent: #222222;
+    --accent-foreground: #FFFFFF;
+
+    --destructive: #555555;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #333333;
+    --input: #222222;
+    --ring: #FFFFFF;
+
+    --radius: 0rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans selection:bg-white selection:text-black;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-mono uppercase tracking-tight;
+  }
+}
+
+/* Brutalist Custom Classes */
+@layer utilities {
+  .brutalist-button {
+    @apply border-[3px] border-white bg-black text-white font-mono uppercase text-sm tracking-[2px] px-6 py-3 transition-all duration-300 hover:bg-white hover:text-black active:scale-95 w-fit;
+  }
+
+  .brutalist-card {
+    @apply border-[4px] border-gray-800 bg-gray-900 p-6 transition-all duration-300 hover:border-white;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

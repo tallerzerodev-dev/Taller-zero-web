@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==========================================
+// 1. SESIONES Y ARTISTAS
+// ==========================================
+
+model Session {
+  id              String   @id @default(cuid())
+  title           String
+  sessionNumber   String
+  dateText        String
+  gifUrl          String?
+  trailerUrl      String?
+  spinup          String?  @db.Text
+  
+  // Columna Izquierda (Info extra en la vista)
+  showLeftColInfo Boolean  @default(true)
+  leftColLine1    String?
+  leftColLine2    String?
+  leftColLine3    String?
+
+  // Relación con los artistas (1 Sesión tiene N Artistas)
+  artists         Artist[]
+
+  // Relación con fotos de Galería
+  photos          Photo[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Artist {
+  id        String   @id @default(cuid())
+  name      String
+  photo     String?
+  bio       String?  @db.Text
+  youtube   String?
+
+  // Relación obligatoria con Session
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 2. CONTENIDO EDITABLE (HOME Y ABOUT)
+// ==========================================
+// Funcionan como "Singleton", es decir, la base de datos siempre 
+// mantendrá 1 solo registro con un ID fijo ("home-singleton" o "about-singleton")
+
+model HomeContent {
+  id                   String   @id @default("home-singleton")
+  heroTitle            String?
+  heroSubtitle         String?
+  tickerText           String?  @db.Text
+  heroBackground       String?  // GIF o Video (.mp4) de fondo
+
+  featuredSessionId    String?
+  featuredSessionTitle String?
+  featuredSessionGif   String?
+  
+  featuredItemImage    String?
+  featuredItemTitle    String?
+  featuredItemSubtitle String?
+
+  storeEnabled         Boolean  @default(false) // Toggle global para E-commerce
+
+  updatedAt            DateTime @updatedAt
+}
+
+model AboutContent {
+  id          String   @id @default("about-singleton")
+  title       String?
+  content     String?  @db.Text
+  showMarquee Boolean  @default(true)
+  coverImage  String?
+
+  updatedAt   DateTime @updatedAt
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?  // Ej: B2B Especial... 
+  date      DateTime @default(now()) // Fecha personalizada, sino hereda la de la sesiÃ³n
+
+  // Relación opcional con Session
+  sessionId String?
+  session   Session?  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// 3. E-COMMERCE / TIENDA 
+// ==========================================
+
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  price       Int
+  description String?  @db.Text
+  images      String[] // Array de URLs (Para subir a Cloudinary)
+  isAvailable Boolean  @default(true)
+  stock       Int      @default(0)
+
+  // Opciones futuras como Tallas
+  sizes       String[] @default([]) // Ej: ["S", "M", "L", "XL"]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Puedes expandir en el futuro (Order, OrderItem) para el carrito.
