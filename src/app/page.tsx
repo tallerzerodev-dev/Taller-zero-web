@@ -143,7 +143,7 @@ export default async function Home() {
                                     <span className="absolute top-4 right-4 font-mono text-[10px] bg-white text-black px-2 py-0.5 uppercase tracking-widest font-bold z-10">NUEVO</span>
                                     <div className="w-full aspect-square bg-[#111] mb-6 flex items-center justify-center relative overflow-hidden">
                                         {homeData?.featuredItemImage ? (
-                                            <div className="absolute inset-0 bg-cover bg-center grayscale mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity" style={{ backgroundImage: `url(${homeData.featuredItemImage})` }}></div>
+                                            <div className="absolute inset-0 bg-cover bg-center grayscale mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity" style={{ backgroundImage: `url(${homeData?.featuredItemImage})` }}></div>
                                         ) : (
                                             <span className="text-[#333] font-mono text-xs uppercase tracking-widest">NO IMAGE</span>
                                         )}
