@@ -36,7 +36,6 @@ export default async function Home() {
                         ) : (
                             <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${homeData.heroBackground})` }}></div>
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
                     </div>
                 )}
 
