@@ -4,10 +4,8 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { Noise } from '@/components/ui/Noise'
 import { Providers } from '@/components/Providers'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import './globals.css'
-
-const prisma = new PrismaClient()
 export const dynamic = 'force-dynamic'
 
 const spaceMono = Space_Mono({
@@ -70,7 +68,7 @@ export default async function RootLayout({
           <div className="pt-20 flex-1 flex flex-col z-10 w-full">
             {children}
           </div>
-          <Footer />
+          <Footer storeEnabled={homeData?.storeEnabled || false} />
         </Providers>
       </body>
     </html>

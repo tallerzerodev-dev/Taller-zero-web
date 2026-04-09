@@ -1,15 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
-
-const prisma = new PrismaClient()
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const sessions = await prisma.session.findMany({ include: { artists: true } })
   const allArtists = new Set<string>()
-  sessions.forEach(s => s.artists.forEach(a => allArtists.add(a.name)))
+  sessions.forEach((s: any) => s.artists.forEach((a: any) => allArtists.add(a.name)))
 
   return {
     title: 'Archivo | Sesiones en Vivo',
@@ -50,7 +48,7 @@ export default async function SessionsPage() {
       <section className="px-6 w-full max-w-[1400px] mx-auto">
         {sessions.length > 0 ? (
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {sessions.map((session, idx) => (
+            {sessions.map((session: any, idx: number) => (
               <FadeIn key={session.id}>
                 <Link
                   href={`/sessions/${session.id}`}
@@ -76,7 +74,7 @@ export default async function SessionsPage() {
                           <video src={bgUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0" />
                         ) : (
                           <div className="absolute inset-0 bg-cover bg-center grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0"
-                            style={{ backgroundImage: `url(\${bgUrl})` }}></div>
+                            style={{ backgroundImage: `url(${bgUrl})` }}></div>
                         );
                       })()}
                       <div className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full border border-white/50 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
@@ -90,7 +88,7 @@ export default async function SessionsPage() {
                         {session.title}
                       </h2>
                       <div className="font-mono text-[10px] text-[#888] uppercase tracking-widest line-clamp-1 border-t border-[#333] pt-3 mt-1">
-                        ARTISTAS: {session.artists?.map(a => a.name).join(' + ') || 'N/A'}
+                        ARTISTAS: {session.artists?.map((a: any) => a.name).join(' + ') || 'N/A'}
                       </div>
                     </div>
                   </div>

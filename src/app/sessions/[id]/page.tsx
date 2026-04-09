@@ -1,11 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { TrailerVideo } from '@/components/ui/TrailerVideo'
 import { ParticleBackground } from '@/components/ui/ParticleBackground'
-
-const prisma = new PrismaClient()
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -16,13 +14,13 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
     if (!session) return { title: 'Sesión No Encontrada' }
 
-    const artistNames = session.artists.map(a => a.name).join(', ')
+    const artistNames = session.artists.map((a: any) => a.name).join(', ')
     const desc = `Live set RAW de ${session.title}. Featuring: ${artistNames}. Formato original desde Taller Zero.`
 
     return {
         title: `${session.title}`,
         description: desc,
-        keywords: [session.title, 'Live Set', 'Sesiones en Vivo', ...session.artists.map(a => a.name), 'Taller Zero', 'techno'],
+        keywords: [session.title, 'Live Set', 'Sesiones en Vivo', ...session.artists.map((a: any) => a.name), 'Taller Zero', 'techno'],
         openGraph: {
             title: `${session.title} | Taller Zero`,
             description: desc,

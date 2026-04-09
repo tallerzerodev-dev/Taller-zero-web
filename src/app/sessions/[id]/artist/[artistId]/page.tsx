@@ -2,9 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FadeIn } from '@/components/ui/Animations'
 import Image from 'next/image'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: { id: string, artistId: string } }): Promise<Metadata> {
@@ -14,12 +12,12 @@ export async function generateMetadata({ params }: { params: { id: string, artis
     })
     if (!artist) return { title: 'Artista No Encontrado' }
 
-    const desc = artist.bio || `Live set de ${artist.name} en ${artist.session.title}. Registros visuales Taller Zero.`
+    const desc = artist.bio || `Live set de ${artist.name} en ${(artist as any).session.title}. Registros visuales Taller Zero.`
 
     return {
-        title: `${artist.name} | ${artist.session.title}`,
+        title: `${artist.name} | ${(artist as any).session.title}`,
         description: desc,
-        keywords: [artist.name, artist.session.title, 'techno', 'live set', 'dj set', 'underground'],
+        keywords: [artist.name, (artist as any).session.title, 'techno', 'live set', 'dj set', 'underground'],
         openGraph: {
             title: `${artist.name} | Live Set en Taller Zero`,
             description: desc,

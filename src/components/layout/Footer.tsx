@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-export function Footer() {
+export function Footer({ storeEnabled = false }: { storeEnabled?: boolean }) {
     return (
         <footer className="w-full border-t-4 border-white bg-black pt-16 pb-8 px-6 mt-20">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
@@ -27,9 +27,14 @@ export function Footer() {
                     <Link href="/sessions" className="hover:text-white transition-colors flex items-center gap-2 group">
                         <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> Sesiones
                     </Link>
-                    <Link href="/store" className="hover:text-white transition-colors flex items-center gap-2 group">
-                        <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> Tienda
+                    <Link href="/galeria" className="hover:text-white transition-colors flex items-center gap-2 group">
+                        <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> Galería
                     </Link>
+                    {storeEnabled && (
+                        <Link href="/store" className="hover:text-white transition-colors flex items-center gap-2 group">
+                            <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> Tienda
+                        </Link>
+                    )}
                     <Link href="/about" className="hover:text-white transition-colors flex items-center gap-2 group">
                         <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> About
                     </Link>

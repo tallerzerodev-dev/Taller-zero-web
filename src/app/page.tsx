@@ -1,9 +1,7 @@
 import Link from 'next/link'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 import { Ticker } from '@/components/ui/Ticker'
-
-const prisma = new PrismaClient()
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
