@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { Menu, X, ShoppingCart } from 'lucide-react'
 import { usePathname } from 'next/navigation'
@@ -17,15 +18,17 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
         <nav className="fixed top-0 w-full z-50 border-b-2 border-white bg-black/90 backdrop-blur-sm">
             <div className="w-full px-6 md:px-12 lg:px-20 xl:px-24 h-20 flex items-center justify-between">
 
-                {/* Logo - Black Hole Concept */}
-                <Link href="/" className="flex items-center gap-4 group">
-                    <div className="w-8 h-8 rounded-full bg-black border-2 border-white relative overflow-hidden flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-180">
-                        <div className="absolute inset-0 bg-white/20 blur-[2px] animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                {/* Logo */}
+                <Link href="/" className="flex items-center group">
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 transition-transform duration-500 group-hover:scale-105">
+                        <Image 
+                            src="/logo_taller_zero.png" 
+                            alt="Taller Zero Logo" 
+                            fill 
+                            className="object-contain"
+                            priority
+                        />
                     </div>
-                    <span className="font-mono font-bold text-xl uppercase tracking-widest hidden sm:block">
-                        Taller Zero
-                    </span>
                 </Link>
 
                 {/* Desktop Links */}
@@ -86,7 +89,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
                             {session.user?.isAdmin && (
                                 <Link href="/admin/dashboard" onClick={() => setIsOpen(false)} className="p-6 text-[#ff3333] hover:bg-[#ff3333] hover:text-white transition-colors">PANEL ADMIN</Link>
                             )}
-                            <button onClick={() => { setIsOpen(false); signOut({ callbackUrl: '/' }); }} className="p-6 text-gray-400 hover:bg-white hover:text-black transition-colors w-full text-left">CERRAR SESIÃ“N</button>
+                            <button onClick={() => { setIsOpen(false); signOut({ callbackUrl: '/' }); }} className="p-6 text-gray-400 hover:bg-white hover:text-black transition-colors w-full text-left">CERRAR SESIÓN</button>
                         </>
                     ) : (
                         <Link href="/login" onClick={() => setIsOpen(false)} className="p-6 text-gray-400 hover:bg-white hover:text-black transition-colors">INGRESAR</Link>
