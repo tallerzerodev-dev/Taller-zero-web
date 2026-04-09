@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { FadeIn } from '@/components/ui/Animations'
+import Image from 'next/image'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
-
-const prisma = new PrismaClient()
 
 export default async function GaleriaPage({
     searchParams,
@@ -63,11 +62,14 @@ export default async function GaleriaPage({
                     </div>
                 ) : (
                     <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-                        {photos.map((photo, i) => (
-                            <div key={photo.id} className="break-inside-avoid relative group cursor-pointer mb-6 border border-[#222]">
-                                <img
+                        {photos.map((photo: any, i: number) => (
+                            <div key={photo.id} className="break-inside-avoid relative group cursor-pointer mb-6 border border-[#222] min-h-[300px] bg-[#111]">
+                                <Image
                                     src={photo.url}
                                     alt={photo.caption || 'Galería foto'}
+                                    width={1000}
+                                    height={1000}
+                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                                     className="w-full h-auto object-cover grayscale opacity-75 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 block"
                                     loading="lazy"
                                 />

@@ -20,12 +20,12 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
 
                 {/* Logo */}
                 <Link href="/" className="flex items-center group">
-                    <div className="relative w-36 h-12 md:w-48 md:h-16 transition-transform duration-500 group-hover:scale-105">
+                    <div className="relative w-48 h-16 md:w-64 md:h-20 transition-transform duration-500 group-hover:scale-105">
                         <Image
                             src="/logo_taller_zero.png"
                             alt="Taller Zero Logo"
                             fill
-                            className="object-contain object-left scale-150 origin-left"
+                            className="object-contain object-left scale-[1.7] origin-left"
                             priority
                         />
                     </div>
