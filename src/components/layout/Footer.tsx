@@ -1,20 +1,21 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
-export function Footer({ storeEnabled = false }: { storeEnabled?: boolean }) {
+export function Footer({ storeEnabled = false }: { storeEnabled?: boolean }) {  
     return (
         <footer className="w-full border-t-4 border-white bg-black pt-16 pb-8 px-6 mt-20">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
 
                 {/* Brand */}
-                <div className="md:col-span-2 flex flex-col items-start gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-black"></div>
-                        </div>
-                        <h3 className="font-mono font-bold text-2xl uppercase tracking-widest">
-                            Taller Zero
-                        </h3>
-                    </div>
+                <div className="md:col-span-2 flex flex-col items-start gap-4"> 
+                    <Link href="/" className="relative w-48 h-16 md:w-64 md:h-20 mb-2 group block">
+                        <Image
+                            src="/logo_taller_zero.png"
+                            alt="Taller Zero Logo"
+                            fill
+                            className="object-contain object-left scale-[1.7] origin-left transition-transform duration-500 group-hover:scale-[1.8]"
+                        />
+                    </Link>
                     <p className="text-gray-400 max-w-sm mt-4 font-sans">
                         Un colectivo que combina trabajo, música de calidad y merch exclusivo.
                         Sesiones de electrónica grabadas en espacios de trabajo reales.
