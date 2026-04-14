@@ -7,8 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  url = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 // ==========================================
@@ -111,14 +111,44 @@ model Product {
   price       Int
   description String?  @db.Text
   images      String[] // Array de URLs (Para subir a Cloudinary)
+  category    String   @default("Ropa") // Ej: Ropa, Accesorios, Merch
   isAvailable Boolean  @default(true)
   stock       Int      @default(0)
+  views       Int      @default(0) // Analytics: Producto más visitado
 
-  // Opciones futuras como Tallas
   sizes       String[] @default([]) // Ej: ["S", "M", "L", "XL"]
+
+  orderItems  OrderItem[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-// Puedes expandir en el futuro (Order, OrderItem) para el carrito.
+model Order {
+  id              String   @id @default(cuid())
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+  shippingAddress String?  @db.Text
+  status          String   @default("PENDING") // PENDING, PAID, SHIPPED, DELIVERED, CANCELLED
+  totalAmount     Int
+
+  items           OrderItem[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  quantity    Int
+  size        String?  // Talla seleccionada al momento de la compra
+  priceAtTime Int      // Precio histórico congelado al momento del pago
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  createdAt   DateTime @default(now())
+}

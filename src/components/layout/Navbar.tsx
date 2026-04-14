@@ -2,15 +2,25 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Menu, X, ShoppingCart } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import { useCartStore } from '@/store/useCartStore'
 
 export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
     const [isOpen, setIsOpen] = useState(false)
     const pathname = usePathname()
     const { data: session } = useSession()
+
+    const [isMounted, setIsMounted] = useState(false)
+    const totalItems = useCartStore(state => state.totalItems())
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
+    const cartCount = isMounted ? totalItems : 0
 
     const isAdminArea = pathname?.startsWith('/admin/dashboard')
 
@@ -44,7 +54,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
                         >
                             <ShoppingCart className="w-5 h-5 shrink-0" />
                             <span className="font-bold text-sm tracking-widest whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-500 ml-3 flex gap-2">
-                                CARRITO <span>(2)</span>
+                                CARRITO <span>({cartCount})</span>
                             </span>
                         </Link>
                     )}
@@ -83,7 +93,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
                     <Link href="/galeria" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Galería</Link>
                     {storeEnabled && <Link href="/store" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Tienda</Link>}
                     <Link href="/about" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">About</Link>
-                    {storeEnabled && <Link href="/cart" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900 flex justify-between">Carrito <span className="bg-white text-black px-2 py-0.5 text-xs font-bold">2</span></Link>}
+                    {storeEnabled && <Link href="/cart" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900 flex justify-between">Carrito <span className="bg-white text-black px-2 py-0.5 text-xs font-bold">{cartCount}</span></Link>}
                     {session ? (
                         <>
                             {session.user?.isAdmin && (

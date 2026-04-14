@@ -1,59 +1,106 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
+import Image from 'next/image'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
+import { prisma } from '@/lib/prisma'
 
-const PRODUCTS = [
-    { id: 'pol-001', name: 'Polerón TR-Z', price: '$50.000', label: 'NUEVO', image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1974&auto=format&fit=crop' },
-    { id: 'pol-002', name: 'Polera Void', price: '$25.000', label: 'PRE-ORDER', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2080&auto=format&fit=crop' },
-    { id: 'pol-003', name: 'Polerón Horizon', price: '$50.000', label: '', image: 'https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?q=80&w=2041&auto=format&fit=crop' }
-]
+export const dynamic = 'force-dynamic'
 
-export default function StorePage() {
+export default async function StorePage({ searchParams }: { searchParams: { category?: string } }) {
+    const selectedCategory = searchParams?.category || 'TODO'
+
+    const where = selectedCategory === 'TODO' ? {} : { category: selectedCategory }
+    const products = await prisma.product.findMany({
+        where,
+        orderBy: { createdAt: 'desc' }
+    })
+
+    const categories = await prisma.product.groupBy({
+        by: ['category'],
+        _count: { category: true }
+    })
+
     return (
         <main className="flex-1 flex flex-col items-center bg-black min-h-screen px-6 py-24">
-            <div className="w-full max-w-7xl mx-auto">
+            <div className="w-full max-w-[1600px] mx-auto">
                 <FadeIn y={20}>
-                    <div className="flex flex-col md:flex-row justify-between items-end border-b-4 border-white mb-16 pb-8 gap-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-[#333] mb-12 pb-8 gap-6">
                         <div>
-                            <h1 className="text-6xl md:text-8xl font-bold uppercase tracking-tighter">
-                                Merch<br />Store
+                            <span className="font-mono text-[10px] md:text-xs text-[#555] uppercase tracking-[0.3em] font-bold mb-4 inline-block">{`/// `}TALLER ZERO OFICIAL</span>
+                            <h1 className="text-[12vw] sm:text-[8vw] md:text-[6vw] lg:text-[5rem] px-0 font-bold uppercase tracking-tighter text-white leading-[0.85]">
+                                MERCH<br />STORE
                             </h1>
-                            <p className="text-gray-400 font-mono text-xl mt-4 uppercase tracking-widest">
-                                Equipamiento oficial del taller.
+                            <p className="text-[#888] font-mono text-xs md:text-sm mt-8 uppercase tracking-widest max-w-lg">
+                                Equipamiento oficial. Colecciones limitadas y exclusivas.
                             </p>
                         </div>
-                        <div className="font-mono text-sm uppercase text-gray-500 tracking-widest text-right">
-                            <p>Envío Nacional: Activado</p>
-                            <p>Stock: Limitado</p>
+                        <div className="font-mono text-[10px] md:text-xs uppercase text-gray-500 tracking-widest text-left md:text-right">
+                            <p className="mb-2">Envíos a todo Chile</p>
+                            <p>Stock Limitado</p>
                         </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4 mb-16">
+                        <Link
+                            href="/store"
+                            className={`font-mono text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${selectedCategory === 'TODO' ? 'border-white text-white bg-white/5' : 'border-[#333] text-[#888] hover:text-white hover:border-[#666]'}`}
+                        >
+                            TODO
+                        </Link>
+                        {categories.map((c) => (
+                            <Link
+                                key={c.category}
+                                href={`/store?category=${c.category}`}
+                                className={`font-mono text-xs uppercase tracking-widest px-4 py-2 border transition-colors ${selectedCategory === c.category ? 'border-white text-white bg-white/5' : 'border-[#333] text-[#888] hover:text-white hover:border-[#666]'}`}
+                            >
+                                {c.category.toUpperCase()}
+                            </Link>
+                        ))}
                     </div>
                 </FadeIn>
 
-                <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {PRODUCTS.map((product) => (
-                        <FadeIn key={product.id}>
-                            <Link href={`/store/${product.id}`} className="group block">
-                                <div className="w-full aspect-[3/4] bg-gray-900 border-4 border-gray-800 group-hover:border-white transition-colors duration-300 relative overflow-hidden mb-6 p-4">
-                                    {product.label && (
-                                        <div className="absolute top-4 right-4 z-20 bg-white text-black font-mono text-xs font-bold px-2 py-1 tracking-widest">
-                                            {product.label}
-                                        </div>
-                                    )}
-                                    <div
-                                        className="absolute inset-4 bg-cover bg-center mix-blend-luminosity grayscale group-hover:scale-105 transition-transform duration-700"
-                                        style={{ backgroundImage: `url(${product.image})` }}
-                                    ></div>
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20">
-                                        <span className="brutalist-button">Ver Detalles</span>
+                {products.length === 0 ? (
+                    <div className="py-32 text-center border border-[#333] bg-[#0a0a0a]">
+                        <span className="font-mono text-sm text-[#555] uppercase tracking-widest">
+                            {selectedCategory === 'TODO' ? 'PRÓXIMAMENTE DISPONIBLE.' : 'NO HAY PRODUCTOS EN ESTA CATEGORÍA.'}
+                        </span>
+                    </div>
+                ) : (
+                    <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
+                        {products.map((product) => (
+                            <FadeIn key={product.id} className="group block cursor-pointer">
+                                <Link href={`/store/${product.id}`}>
+                                    <div className="w-full aspect-[4/5] bg-[#111] border border-[#222] group-hover:border-[#666] transition-colors duration-500 relative overflow-hidden mb-4 p-4 flex items-center justify-center">
+                                        {!product.isAvailable && (
+                                            <div className="absolute top-4 right-4 z-20 bg-red-600 text-white font-mono text-[10px] font-bold px-2 py-1 tracking-widest uppercase">
+                                                SOLD OUT
+                                            </div>
+                                        )}
+                                        {product.images[0] ? (
+                                            <Image
+                                                src={product.images[0]}
+                                                alt={product.title}
+                                                fill
+                                                className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${!product.isAvailable ? 'grayscale opacity-30 shadow-inner' : 'opacity-90 group-hover:opacity-100'}`}
+                                            />
+                                        ) : (
+                                            <div className="font-mono text-[#333] text-xs uppercase tracking-widest">Sin foto</div>
+                                        )}
                                     </div>
-                                </div>
-                                <div className="flex justify-between items-start font-mono uppercase tracking-wide">
-                                    <h3 className="text-xl font-bold">{product.name}</h3>
-                                    <span className="text-gray-400">{product.price}</span>
-                                </div>
-                            </Link>
-                        </FadeIn>
-                    ))}
-                </StaggerContainer>
+
+                                    <div className="flex flex-col items-start font-mono tracking-widest">
+                                        <span className="text-[10px] text-[#666] uppercase mb-1">{product.category}</span>
+                                        <h3 className="text-sm font-bold text-white uppercase line-clamp-1 group-hover:text-[#aaa] transition-colors">{product.title}</h3>
+                                        <div className="flex justify-between w-full items-center mt-1">
+                                            <span className="text-white text-sm relative">
+                                                ${product.price.toLocaleString('es-CL')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Link>
+                            </FadeIn>
+                        ))}
+                    </StaggerContainer>
+                )}
             </div>
         </main>
     )

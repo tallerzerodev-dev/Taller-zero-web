@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
             </FadeIn>
           </Link>
 
-          <Link href="/admin/dashboard/Analíticas" className="block">
+          <Link href="/admin/dashboard/analiticas" className="block">
             <FadeIn className="bg-[#0a0a0a] border border-[#222222] p-8 hover:border-white transition-colors group cursor-pointer flex flex-col h-full">
               <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-white">Analíticas</h2>
               <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Revisa el tráfico del sitio, ventas mensuales, y datos generados por tu tienda y sesiónes.</p>

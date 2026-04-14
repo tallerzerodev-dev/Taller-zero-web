@@ -1,91 +1,81 @@
-import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
+import { notFound } from 'next/navigation'
 import { FadeIn } from '@/components/ui/Animations'
+import Image from 'next/image'
+import Link from 'next/link'
+import { AddToCartPanel } from '@/components/store/AddToCartPanel'
 
-const PRODUCTS_DATA: Record<string, any> = {
-    'pol-001': {
-        name: 'Poler�n\nTR-Z',
-        price: '$50.000 CLP',
-        desc: 'Poler�n heavyweight 100% algod�n. Serigrafiado a mano en el taller. Dise�o brutalista con el logo en alto contraste. Edici�n limitada.',
-        image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1974&auto=format&fit=crop'
-    },
-    'pol-002': {
-        name: 'Polera\nVoid',
-        price: '$25.000 CLP',
-        desc: 'Drop shoulder t-shirt. Tela premium. Estampado corrosivo que no se desgasta. El uniforme oficial del underground.',
-        image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2080&auto=format&fit=crop'
-    },
-    'pol-003': {
-        name: 'Poler�n\nHorizon',
-        price: '$50.000 CLP',
-        desc: 'Inspiraci�n industrial y cortes rectos. Cierre met�lico grueso y detalles ocultos. Para la noche m�s larga.',
-        image: 'https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?q=80&w=2041&auto=format&fit=crop'
+export const dynamic = 'force-dynamic'
+
+export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+    const product = await prisma.product.findUnique({
+        where: { id: params.id }
+    })
+
+    if (!product) {
+        notFound()
     }
-}
 
-export default function ProductPage({ params }: { params: { id: string } }) {
-    const product = PRODUCTS_DATA[params.id] || {
-        name: 'Art�culo\nDesconocido',
-        price: '$0 CLP',
-        desc: 'Este art�culo no se encuentra en la base de datos de nuestro cat�logo.',
-        image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1974&auto=format&fit=crop'
-    };
+    await prisma.product.update({
+        where: { id: params.id },
+        data: { views: { increment: 1 } }
+    })
 
     return (
-        <main className="flex-1 flex justify-center bg-black min-h-screen px-6 py-24">
-            <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row gap-12">
-                {/* IMAGEN DE PRODUCTO */}
-                <FadeIn className="w-full md:w-1/2 aspect-[3/4] bg-gray-900 border-4 border-gray-800 relative">
-                    <div
-                        className="absolute inset-4 bg-cover bg-center mix-blend-luminosity grayscale"
-                        style={{ backgroundImage: `url(${product.image})` }}
-                    ></div>
-                    <div className="absolute bottom-4 left-4 z-20 bg-white text-black font-mono text-xs font-bold px-2 py-1 tracking-widest uppercase">
-                        {params.id}
-                    </div>
-                </FadeIn>
+        <main className="flex-1 flex flex-col bg-black min-h-screen pt-24 pb-20 px-6 md:px-12 lg:px-20 xl:px-24">
+            <div className="max-w-[1600px] w-full mx-auto">
+                <FadeIn y={20}>
+                    <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
+                        {/* Izquierda: Imagen Principal */}
+                        <div className="w-full lg:w-1/2 relative">
+                            <div className="lg:sticky lg:top-24">
+                                <Link href="/store" className="font-mono text-[10px] text-[#555] hover:text-white uppercase tracking-[0.3em] font-bold mb-8 inline-block transition-colors">
+                                    <span className="mr-2">←</span> VOLVER A LA TIENDA
+                                </Link>
 
-                {/* DETALLES DE PRODUCTO */}
-                <FadeIn delay={0.2} className="w-full md:w-1/2 flex flex-col pt-8 md:pt-0">
-                    <Link href="/store" className="font-mono text-sm uppercase tracking-widest text-gray-500 hover:text-white mb-8 border-b border-gray-800 pb-4 w-fit">
-                        ? Volver a la Tienda
-                    </Link>
-
-                    <h1 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-4 whitespace-pre-line">
-                        {product.name}
-                    </h1>
-
-                    <p className="text-3xl font-mono text-gray-300 mb-8">{product.price}</p>
-
-                    <div className="space-y-8 border-y-2 border-white py-8 my-8">
-                        <p className="text-gray-400 font-sans text-lg leading-relaxed">
-                            {product.desc}
-                        </p>
-
-                        <div className="flex flex-col gap-4 font-mono uppercase tracking-widest">
-                            <div className="flex gap-4 items-center">
-                                <span className="text-gray-500 w-20">TALLAS:</span>
-                                <div className="flex gap-2">
-                                    {['S', 'M', 'L', 'XL'].map(size => (
-                                        <button key={size} className="border-2 border-gray-800 hover:border-white px-4 py-2 hover:bg-white hover:text-black transition-colors">
-                                            {size}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4 items-center mt-2">
-                                <span className="text-gray-500 w-20">COLOR:</span>
-                                <div className="flex gap-2">
-                                    <button className="w-8 h-8 rounded-full bg-black border-2 border-white" title="Negro"></button>
-                                    <button className="w-8 h-8 rounded-full bg-gray-600 border-2 border-gray-800 hover:border-white" title="Gris Mute"></button>
+                                <div className="w-full relative aspect-[4/5] bg-[#111] border border-[#333] flex items-center justify-center p-8 mt-2">
+                                    {!product.isAvailable && (
+                                        <div className="absolute top-4 right-4 z-20 bg-red-600 text-white font-mono text-[10px] font-bold px-4 py-2 tracking-[0.3em] uppercase shadow-lg">
+                                            AGOTADO
+                                        </div>
+                                    )}
+                                    {product.images[0] ? (
+                                        <Image
+                                            src={product.images[0]}
+                                            alt={product.title}
+                                            fill
+                                            priority
+                                            className={`Object-cover object-center ${product.isAvailable ? 'grayscale opacity-40' : ''}`}
+                                        />
+                                    ) : (
+                                        <span className="font-mono text-[#333] text-sm uppercase tracking-widest">Sin imagen</span>
+                                    )}
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <button className="brutalist-button w-full text-center text-lg mt-auto !py-6">
-                        AGREGAR AL CARRITO
-                    </button>
+                        {/* Derecha: Detalles del Producto */}
+                        <div className="w-full lg:w-1/2 flex flex-col pt-4 lg:pt-[104px]">
+                            <div className="border-b border-[#333] pb-8 mb-8">
+                                <span className="font-mono text-[10px] uppercase text-[#666] tracking-[0.3em] mb-4 block">{`///`} {product.category}</span>
+                                <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter text-white leading-[0.9] mb-4">
+                                    {product.title}
+                                </h1>
+                                <p className="text-2xl md:text-3xl font-mono tracking-widest text-[#bbb]">
+                                    ${product.price.toLocaleString('es-CL')}
+                                </p>
+                            </div>
+
+                            <div className="mb-12">
+                                <h3 className="font-mono text-[#555] uppercase text-xs tracking-[0.3em] font-bold mb-4">DESCRIPCIÓN</h3>
+                                <div className="text-[#aaa] font-sans text-lg font-light leading-relaxed max-w-prose whitespace-pre-wrap">
+                                    {product.description || 'Sin descripción disponible para este producto.'}
+                                </div>
+                            </div>
+
+                            <AddToCartPanel product={product} />
+                        </div>
+                    </div>
                 </FadeIn>
             </div>
         </main>
