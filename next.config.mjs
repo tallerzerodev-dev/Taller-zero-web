@@ -44,7 +44,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self' https://api.mercadopago.com https://accounts.google.com https://api.cloudinary.com; frame-src https://sdk.mercadopago.com",
+                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self' https://api.mercadopago.com https://accounts.google.com https://api.cloudinary.com; frame-src https://sdk.mercadopago.com; media-src 'self' https://res.cloudinary.com;",
                     },
                 ],
             },
