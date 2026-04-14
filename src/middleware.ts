@@ -5,12 +5,17 @@ import type { NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
 
-    // Rutas que queremos proteger a partir de /admin/dashboard
-    const isAdminRoute = request.nextUrl.pathname.startsWith('/admin/dashboard')
+    // Rutas que queremos proteger a partir de /admin/dashboard o /api/admin
+    const isDashboardRoute = request.nextUrl.pathname.startsWith('/admin/dashboard')
+    const isApiAdminRoute = request.nextUrl.pathname.startsWith('/api/admin')
+    const isAdminRoute = isDashboardRoute || isApiAdminRoute
 
     if (isAdminRoute) {
-        // Si no hay token de usuario -> Redirigir al panel de inicio de sesión
+        // Si no hay token de usuario -> Fallo de autenticación
         if (!token) {
+            if (isApiAdminRoute) {
+                return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+            }
             return NextResponse.redirect(new URL('/login', request.url))
         }
 
@@ -19,14 +24,18 @@ export async function middleware(request: NextRequest) {
         const userEmail = token.email?.toLowerCase();
 
         if (!userEmail || !allowedAdmins.includes(userEmail)) {
-            // Usuario conectado pero NO es admin, redirigir
+            // Usuario conectado pero NO es admin, redirigir o devolver error
+            if (isApiAdminRoute) {
+                return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 })
+            }
             return NextResponse.redirect(new URL('/', request.url))
         }
     }
 
+    // CSRF & Header protection is managed in next.config.mjs
     return NextResponse.next()
 }
 
 export const config = {
-    matcher: ['/admin/dashboard/:path*'],
+    matcher: ['/admin/dashboard/:path*', '/api/admin/:path*'],
 }

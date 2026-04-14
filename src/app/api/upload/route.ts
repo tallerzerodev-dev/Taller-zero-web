@@ -17,6 +17,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No se procesó ningún archivo' }, { status: 400 });
     }
 
+    // 1. Validar el tamaño del archivo (Max 50MB)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: 'El archivo excede el límite de 50MB' }, { status: 413 });
+    }
+
+    // 2. Validar tipo de archivo (solo imágenes y videos)
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4'];
+    if (!allowedMimeTypes.includes(file.type)) {
+      return NextResponse.json({ error: 'Tipo de archivo no soportado. Solo JPG, PNG, WEBP, GIF, y MP4.' }, { status: 415 });
+    }
+
     // Convertimos el archivo web a un Buffer de Node.js para que Cloudinary pueda leerlo
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);

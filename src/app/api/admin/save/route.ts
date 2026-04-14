@@ -1,10 +1,85 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { z } from 'zod';
+import DOMPurify from 'isomorphic-dompurify';
+
+const sanitizeStr = (val: string) => DOMPurify.sanitize(val);
+
+const HomeContentSchema = z.object({
+  heroTitle: z.string().optional().default('').transform(sanitizeStr),
+  heroSubtitle: z.string().optional().default('').transform(sanitizeStr),
+  heroBackground: z.string().optional().default(''), 
+  tickerText: z.string().optional().default('').transform(sanitizeStr),
+  featuredSessionId: z.string().optional().default('').transform(sanitizeStr),
+  featuredSessionTitle: z.string().optional().default('').transform(sanitizeStr),
+  featuredSessionGif: z.string().optional().default(''),
+  featuredItemImage: z.string().optional().default(''),
+  featuredItemTitle: z.string().optional().default('').transform(sanitizeStr),
+  featuredItemSubtitle: z.string().optional().default('').transform(sanitizeStr),
+  storeEnabled: z.boolean().optional().default(false),
+});
+
+const AboutContentSchema = z.object({
+  title: z.string().optional().default('').transform(sanitizeStr),
+  content: z.string().optional().default('').transform(sanitizeStr),
+  coverImage: z.string().optional().default(''),
+});
+
+const ArtistSchema = z.object({
+  name: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
+  photo: z.string().nullish(),
+  bio: z.string().nullish().transform(v => v ? sanitizeStr(v) : v),
+  youtube: z.string().nullish(), // URL, no es necesario purificar HTML, el parseo de URL bastaría si es estricto
+});
+
+const SessionContentSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().transform(sanitizeStr),
+  sessionNumber: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
+  dateText: z.string().optional().default('').transform(sanitizeStr),
+  gifUrl: z.string().optional(),
+  trailerUrl: z.string().optional(),
+  spinup: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
+  showLeftColInfo: z.boolean().optional(),
+  leftColLine1: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
+  leftColLine2: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
+  leftColLine3: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
+  artists: z.array(ArtistSchema).optional().default([]),
+});
+
+const SaveActionSchema = z.discriminatedUnion('page', [
+  z.object({
+    page: z.literal('home'),
+    action: z.string().optional(),
+    content: HomeContentSchema,
+  }),
+  z.object({
+    page: z.literal('about'),
+    action: z.string().optional(),
+    content: AboutContentSchema,
+  }),
+  z.object({
+    page: z.literal('sessions'),
+    action: z.string().optional(),
+    content: SessionContentSchema,
+  }),
+]);
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { page, action, content } = body;
+    
+    // Validación con Zod (SafeParse para manejo resiliente de errores)
+    const result = SaveActionSchema.safeParse(body);
+    
+    if (!result.success) {
+      return NextResponse.json(
+        { error: 'Payload inválido', details: result.error.flatten() }, 
+        { status: 400 }
+      );
+    }
+    
+    const { page, action, content } = result.data;
 
     // 1. Guardar Home
     if (page === 'home') {
@@ -61,15 +136,15 @@ export async function POST(request: Request) {
     }
 
     // 3. Guardar Sesión (Nueva o Editada)
-    if (page && ['sesiones', 'Sesiones', 'sesi�nes', 'Sesi�nes', 'sesiónes', 'Sesiónes'].includes(page)) {
-      const { artists, id, createdAt, updatedAt, session, ...sessionData } = content;
+    if (page === 'sessions') {
+      const { artists, id, ...sessionData } = content;
       const safeArtists = Array.isArray(artists) ? artists : [];
 
       if (action === 'new') {
         const newSession = await prisma.session.create({
           data: {
             title: sessionData.title,
-            sessionNumber: sessionData.sessionNumber,
+            sessionNumber: sessionData.sessionNumber || '',
             dateText: sessionData.dateText,
             gifUrl: sessionData.gifUrl,
             trailerUrl: sessionData.trailerUrl,

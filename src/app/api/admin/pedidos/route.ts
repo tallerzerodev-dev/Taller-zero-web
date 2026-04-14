@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth'
+import { z } from 'zod'
+
+const OrderUpdateSchema = z.object({
+    id: z.string().min(1, "Order ID is required"),
+    status: z.enum(['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
+})
 
 export async function GET() {
     const session = await getServerSession(authOptions)
@@ -22,15 +28,23 @@ export async function PUT(req: Request) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-    const body = await req.json()
-    const { id, status } = body
+    try {
+        const body = await req.json()
+        const parsed = OrderUpdateSchema.safeParse(body)
 
-    if (!id) return NextResponse.json({ error: 'Falta ID' }, { status: 400 })
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Payload inválido', details: parsed.error.format() }, { status: 400 })
+        }
 
-    const order = await prisma.order.update({
-        where: { id },
-        data: { status }
-    })
+        const { id, status } = parsed.data
 
-    return NextResponse.json(order)
+        const order = await prisma.order.update({
+            where: { id },
+            data: { status }
+        })
+
+        return NextResponse.json(order)
+    } catch (error) {
+        return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
+    }
 }
