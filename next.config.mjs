@@ -50,7 +50,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src ${connectSrc}; frame-src https://sdk.mercadopago.com https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://res.cloudinary.com;`,
+                        value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src ${connectSrc} blob:; frame-src https://sdk.mercadopago.com https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://res.cloudinary.com; worker-src 'self' blob:;`,
                     },
                 ],
             },
