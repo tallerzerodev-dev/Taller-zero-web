@@ -117,41 +117,42 @@ export default function CheckoutPage() {
                     )}
 
                     <form ref={formRef} onSubmit={handleFlowPay} className="space-y-5 font-mono text-xs tracking-widest bg-[#111] p-4 rounded border border-[#222]">
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1">
-                                <label className="text-[#aaa]">Nombre</label>
-                                <input name="nombre" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
+                                <label htmlFor="nombre" className="text-[#aaa]">Nombre</label>
+                                <input id="nombre" name="nombre" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <label className="text-[#aaa]">Apellido</label>
-                                <input name="apellido" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
+                                <label htmlFor="apellido" className="text-[#aaa]">Apellido</label>
+                                <input id="apellido" name="apellido" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
                             </div>
                         </div>
 
                         <div className="flex flex-col gap-1">
-                            <label className="text-[#aaa]">Email</label>
-                            <input name="email" type="email" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
+                            <label htmlFor="email" className="text-[#aaa]">Email</label>
+                            <input id="email" name="email" type="email" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
                         </div>
 
                         <div className="flex flex-col gap-1">
-                            <label className="text-[#aaa]">Dirección Completa</label>
-                            <input name="direccion" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
+                            <label htmlFor="direccion" className="text-[#aaa]">Dirección Completa</label>
+                            <input id="direccion" name="direccion" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1">
-                                <label className="text-[#aaa]">Comuna</label>
-                                <input name="comuna" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
+                                <label htmlFor="comuna" className="text-[#aaa]">Comuna</label>
+                                <input id="comuna" name="comuna" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <label className="text-[#aaa]">Región</label>
-                                <input name="region" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
+                                <label htmlFor="region" className="text-[#aaa]">Región</label>
+                                <input id="region" name="region" type="text" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
                             </div>
                         </div>
 
                         <div className="flex flex-col gap-1">
-                            <label className="text-[#aaa]">Teléfono</label>
-                            <input name="telefono" type="tel" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
+                            <label htmlFor="telefono" className="text-[#aaa]">Teléfono</label>
+                            <input id="telefono" name="telefono" type="tel" className="bg-[#181818] border border-[#222] p-3 rounded focus:border-white focus:outline-none transition-colors text-white" required />
                         </div>
 
                         {/* Selector de tipo de envío */}
