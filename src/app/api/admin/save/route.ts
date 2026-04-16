@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import DOMPurify from 'isomorphic-dompurify';
-
-const sanitizeStr = (val: string) => DOMPurify.sanitize(val);
+// Sanitizador simple compatible con CJS/ESM: elimina etiquetas HTML
+function sanitizeStr(val: string) {
+  return typeof val === 'string' ? val.replace(/<[^>]*>?/gm, '') : val;
+}
 
 const HomeContentSchema = z.object({
   heroTitle: z.string().optional().default('').transform(sanitizeStr),
   heroSubtitle: z.string().optional().default('').transform(sanitizeStr),
-  heroBackground: z.string().optional().default(''), 
+  heroBackground: z.string().optional().default(''),
   tickerText: z.string().optional().default('').transform(sanitizeStr),
   featuredSessionId: z.string().optional().default('').transform(sanitizeStr),
   featuredSessionTitle: z.string().optional().default('').transform(sanitizeStr),
@@ -68,17 +69,17 @@ const SaveActionSchema = z.discriminatedUnion('page', [
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+
     // Validación con Zod (SafeParse para manejo resiliente de errores)
     const result = SaveActionSchema.safeParse(body);
-    
+
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Payload inválido', details: result.error.flatten() }, 
+        { error: 'Payload inválido', details: result.error.flatten() },
         { status: 400 }
       );
     }
-    
+
     const { page, action, content } = result.data;
 
     // 1. Guardar Home
