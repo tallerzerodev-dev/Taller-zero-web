@@ -17,10 +17,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SessionsPage() {
-  const sessions = await prisma.session.findMany({
-    orderBy: { createdAt: 'desc' },
+  let sessions = await prisma.session.findMany({
     include: { artists: true }
   })
+  // Ordenar por sessionNumber numérico descendente (más reciente primero)
+  sessions = sessions.sort((a, b) => {
+    const numA = parseInt((a.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
+    const numB = parseInt((b.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
+    return numB - numA;
+  });
 
   return (
     <main className="flex-1 flex flex-col bg-black min-h-screen pt-32 pb-24">

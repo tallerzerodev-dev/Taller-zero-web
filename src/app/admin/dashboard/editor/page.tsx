@@ -41,7 +41,13 @@ function EditorContent() {
           // 1. Obtener la lista de Sesiónes
           const res = await fetch('/api/admin/content?type=sessions');
           if (res.ok) {
-            const list = await res.json();
+            let list = await res.json();
+            // Ordenar por sessionNumber numérico descendente (más reciente primero)
+            list = list.sort((a: { sessionNumber: string }, b: { sessionNumber: string }) => {
+              const numA = parseInt((a.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
+              const numB = parseInt((b.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
+              return numB - numA;
+            });
             setSessionsList(list);
 
             if (action === 'new') {
