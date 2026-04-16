@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       return NextResponse.json(data || null);
     }
 
-    if (type && ['sesiones', 'Sesiones', 'sesi�nes', 'Sesi�nes', 'sesiónes', 'Sesiónes'].includes(type)) {
+    if (type && ['sesiones', 'Sesiones', 'sesi�nes', 'Sesi�nes', 'sesiónes', 'Sesiónes', 'sessions'].includes(type)) {
       // Pedir una sesión en específico (con sus artistas)
       if (id) {
         const session = await prisma.session.findUnique({

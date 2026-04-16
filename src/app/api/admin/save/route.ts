@@ -69,11 +69,14 @@ const SaveActionSchema = z.discriminatedUnion('page', [
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log('ADMIN/SAVE: Body recibido:', JSON.stringify(body));
 
     // Validación con Zod (SafeParse para manejo resiliente de errores)
     const result = SaveActionSchema.safeParse(body);
+    console.log('ADMIN/SAVE: Resultado validación:', JSON.stringify(result, null, 2));
 
     if (!result.success) {
+      console.log('ADMIN/SAVE: Error de validación:', JSON.stringify(result.error.flatten(), null, 2));
       return NextResponse.json(
         { error: 'Payload inválido', details: result.error.flatten() },
         { status: 400 }
@@ -81,9 +84,11 @@ export async function POST(request: Request) {
     }
 
     const { page, action, content } = result.data;
+    console.log('ADMIN/SAVE: Page:', page, 'Action:', action, 'Content:', JSON.stringify(content));
 
     // 1. Guardar Home
     if (page === 'home') {
+      console.log('ADMIN/SAVE: Guardando HOME', JSON.stringify(content));
       const saved = await prisma.homeContent.upsert({
         where: { id: 'home-singleton' },
         update: {
@@ -114,11 +119,13 @@ export async function POST(request: Request) {
           storeEnabled: Boolean(content.storeEnabled),
         },
       });
+      console.log('ADMIN/SAVE: HOME guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 
     // 2. Guardar About
     if (page === 'about') {
+      console.log('ADMIN/SAVE: Guardando ABOUT', JSON.stringify(content));
       const saved = await prisma.aboutContent.upsert({
         where: { id: 'about-singleton' },
         update: {
@@ -133,6 +140,7 @@ export async function POST(request: Request) {
           coverImage: content.coverImage || '',
         },
       });
+      console.log('ADMIN/SAVE: ABOUT guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 
@@ -140,6 +148,7 @@ export async function POST(request: Request) {
     if (page === 'sessions') {
       const { artists, id, ...sessionData } = content;
       const safeArtists = Array.isArray(artists) ? artists : [];
+      console.log('ADMIN/SAVE: Guardando SESION', { id, sessionData, safeArtists });
 
       if (action === 'new') {
         const newSession = await prisma.session.create({
@@ -164,9 +173,13 @@ export async function POST(request: Request) {
             },
           },
         });
+        console.log('ADMIN/SAVE: SESION nueva guardada:', JSON.stringify(newSession));
         return NextResponse.json({ success: true, data: newSession });
       } else {
-        if (!id) return NextResponse.json({ error: 'Falta ID para editar' }, { status: 400 });
+        if (!id) {
+          console.log('ADMIN/SAVE: Falta ID para editar sesión');
+          return NextResponse.json({ error: 'Falta ID para editar' }, { status: 400 });
+        }
 
         // Eliminamos los artistas antiguos y los reemplazamos por los nuevos (estrategia sencilla de actualización 1 a muchos)
         await prisma.artist.deleteMany({
@@ -196,10 +209,12 @@ export async function POST(request: Request) {
             },
           },
         });
+        console.log('ADMIN/SAVE: SESION editada guardada:', JSON.stringify(updatedSession));
         return NextResponse.json({ success: true, data: updatedSession });
       }
     }
 
+    console.log('ADMIN/SAVE: Página no válida:', page);
     return NextResponse.json({ error: 'Página no válida' }, { status: 400 });
 
   } catch (error) {

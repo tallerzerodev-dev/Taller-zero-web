@@ -5,13 +5,19 @@ import { useState, useEffect, Suspense } from 'react'
 import { Save, Eye, LayoutTemplate, AlertTriangle, PlayCircle } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 
-// Diccionario inicial extendido
-const defaultEditorData: Record<string, any> = { home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '' }, about: { title: '', content: '', showMarquée: true, coverImage: '' }, Sesiónes: { title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '', spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '', artists: [] } }
+
+// Usar 'sessions' como clave y valor de page para backend
+const defaultEditorData: Record<string, any> = {
+  home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '' },
+  about: { title: '', content: '', showMarquée: true, coverImage: '' },
+  sessions: { title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '', spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '', artists: [] }
+};
 
 function EditorContent() {
   const searchParams = useSearchParams()
-  const rawPage = searchParams.get('page') || 'home'
-  const page = ['sesiones', 'sesiónes', 'sesiónes', 'Sesiónes'].includes(rawPage.toLowerCase()) ? 'Sesiónes' : rawPage
+  const rawPage = searchParams.get('page') || 'home';
+  // Si el parámetro es alguna variante de sesiones, usar 'sessions' para el backend
+  const page = ['sesiones', 'sesiónes', 'sesiónes', 'Sesiónes', 'sessions'].includes(rawPage.toLowerCase()) ? 'sessions' : rawPage;
 
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [content, setContent] = useState(defaultEditorData[page] || defaultEditorData.home)
@@ -30,10 +36,10 @@ function EditorContent() {
       setIsLoading(true);
       const action = searchParams.get('action');
 
-      if (page === 'Sesiónes') {
+      if (page === 'sessions') {
         try {
           // 1. Obtener la lista de Sesiónes
-          const res = await fetch('/api/admin/content?type=Sesiónes');
+          const res = await fetch('/api/admin/content?type=sessions');
           if (res.ok) {
             const list = await res.json();
             setSessionsList(list);
@@ -47,7 +53,7 @@ function EditorContent() {
             } else if (list.length > 0) {
               // 2. Elegir cul cargar
               const targetId = currentSessionId || list[0].id;
-              const detailRes = await fetch(`/api/admin/content?type=Sesiónes&id=${targetId}`);
+              const detailRes = await fetch(`/api/admin/content?type=sessions&id=${targetId}`);
               if (detailRes.ok) {
                 const sessionData = await detailRes.json();
                 if (sessionData) {
@@ -56,12 +62,8 @@ function EditorContent() {
                 }
               }
             } else {
-              // No hay Sesiónes
-              setContent({
-                title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '',
-                spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '',
-                artists: []
-              });
+              // No hay sesiones
+              setContent(defaultEditorData.sessions);
             }
           }
         } catch (e) {
@@ -71,8 +73,8 @@ function EditorContent() {
         // Fetch home or about
         try {
           if (page === 'home') {
-            // También traemos la lista de Sesiónes para el dropdown en "Home"
-            const rawList = await fetch('/api/admin/content?type=Sesiónes');
+            // También traemos la lista de sesiones para el dropdown en "Home"
+            const rawList = await fetch('/api/admin/content?type=sessions');
             if (rawList.ok) setSessionsList(await rawList.json());
           }
 
@@ -181,7 +183,7 @@ function EditorContent() {
         if (finalContent.featuredItemImage) finalContent.featuredItemImage = await uploadIfBlob(finalContent.featuredItemImage);
       } else if (page === 'about') {
         if (finalContent.coverImage) finalContent.coverImage = await uploadIfBlob(finalContent.coverImage);
-      } else if (page === 'Sesiónes') {
+      } else if (page === 'sessions') {
         if (finalContent.gifUrl) finalContent.gifUrl = await uploadIfBlob(finalContent.gifUrl);
         if (finalContent.trailerUrl) finalContent.trailerUrl = await uploadIfBlob(finalContent.trailerUrl);
         if (finalContent.artists) {
@@ -199,7 +201,7 @@ function EditorContent() {
       const response = await fetch('/api/admin/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page, action, content: finalContent })
+        body: JSON.stringify({ page: 'sessions', action, content: finalContent })
       });
 
       if (response.ok) {
@@ -237,7 +239,7 @@ function EditorContent() {
 
           <h2 className="text-2xl font-bold uppercase tracking-widest text-white mb-4">Edición: {page}</h2>
 
-          {page === 'Sesiónes' && searchParams.get('action') !== 'new' && (
+          {page === 'sessions' && searchParams.get('action') !== 'new' && (
             <select
               className="w-full bg-black border border-[#333] p-3 text-white text-xs font-mono uppercase tracking-widest cursor-pointer outline-none focus:border-white transition-colors"
               value={currentSessionId}
@@ -252,7 +254,7 @@ function EditorContent() {
             </select>
           )}
 
-          {page === 'Sesiónes' && searchParams.get('action') === 'new' && (
+          {page === 'sessions' && searchParams.get('action') === 'new' && (
             <div className="bg-white text-black font-bold uppercase tracking-widest text-[10px] p-2 inline-block">
               Modo: Creando Nueva Sesión
             </div>
@@ -261,7 +263,7 @@ function EditorContent() {
 
         <div className="p-6 flex-1 overflow-y-auto space-y-10 font-mono text-sm uppercase tracking-widest text-[#888]">
 
-          {page === 'Sesiónes' && (
+          {page === 'sessions' && (
             <div className="space-y-12">
               {/* 1. Meta */}
               <div className="space-y-6">
