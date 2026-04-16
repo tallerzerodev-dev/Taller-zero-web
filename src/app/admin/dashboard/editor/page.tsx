@@ -124,11 +124,13 @@ function EditorContent() {
       }
     }
 
-    // Cloudinary free tier limit: 10MB (10485760 bytes)
-    if (processedFile.size > 10485760) {
-      alert(`❌ EL ARCHIVO "${processedFile.name}" ES DEMASIADO GRANDE INCLUSO TRAS INTENTAR COMPRIMIR. Pesa ${(processedFile.size / 1048576).toFixed(2)} MB, y el límite del servidor es 10 MB. ¡Por favor comprímelo manualmente!`);
-      if (eventTarget) eventTarget.value = '';
-      return;
+    // Solo restringir tamaño para imágenes, no para videos
+    if (file.type.startsWith('image/')) {
+      if (processedFile.size > 10485760) {
+        alert(`❌ EL ARCHIVO "${processedFile.name}" ES DEMASIADO GRANDE INCLUSO TRAS INTENTAR COMPRIMIR. Pesa ${(processedFile.size / 1048576).toFixed(2)} MB, y el límite del servidor es 10 MB. ¡Por favor comprímelo manualmente!`);
+        if (eventTarget) eventTarget.value = '';
+        return;
+      }
     }
 
     callback(URL.createObjectURL(processedFile));
