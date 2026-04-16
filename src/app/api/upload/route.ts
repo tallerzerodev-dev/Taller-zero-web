@@ -24,9 +24,9 @@ export async function POST(request: Request) {
     }
 
     // 2. Validar tipo de archivo (solo imágenes y videos)
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4'];
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/quicktime'];
     if (!allowedMimeTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Tipo de archivo no soportado. Solo JPG, PNG, WEBP, GIF, y MP4.' }, { status: 415 });
+      return NextResponse.json({ error: 'Tipo de archivo no soportado. Solo JPG, PNG, WEBP, GIF, MP4 y MOV.' }, { status: 415 });
     }
 
     // Convertimos el archivo web a un Buffer de Node.js para que Cloudinary pueda leerlo
