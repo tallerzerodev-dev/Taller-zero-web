@@ -1,5 +1,17 @@
+import type { Metadata } from 'next'
 import { FadeIn } from '@/components/ui/Animations'
 import Image from 'next/image'
+
+export const metadata: Metadata = {
+  title: 'The Vision | Quiénes Somos',
+  description: 'Taller Zero: plataforma de música electrónica underground desde Chile. Techno, hypnotic techno, hardgroove y más. Sesiones en vivo en formato RAW desde locaciones industriales.',
+  keywords: [
+    'Taller Zero', 'quienes somos', 'about', 'techno Chile', 'música electrónica Chile',
+    'underground Chile', 'sesiones en vivo', 'bodega sessions', 'industrial techno',
+    'hypnotic techno', 'hardgroove Chile', 'plataforma techno', 'djs chilenos',
+    'techno underground', 'raw techno', 'electronic music Chile', 'techno sessions Chile'
+  ],
+}
 
 export default function AboutPage() {
     return (
@@ -20,10 +32,12 @@ export default function AboutPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                     <FadeIn delay={0.3} className="aspect-square bg-gray-900 border-4 border-gray-800 relative group overflow-hidden">
-                        <div
-                            className="absolute inset-0 bg-cover bg-center mix-blend-luminosity grayscale group-hover:scale-105 transition-transform duration-1000"
-                            style={{ backgroundImage: `url('https://images.unsplash.com/photo-1599423423926-b8b80b206412?q=80&w=2070&auto=format&fit=crop')` }}
-                        ></div>
+                        <Image
+                            src="https://images.unsplash.com/photo-1599423423926-b8b80b206412?q=80&w=2070&auto=format&fit=crop"
+                            alt="Taller Zero - Espacio industrial de música underground en Chile"
+                            fill
+                            className="object-cover mix-blend-luminosity grayscale group-hover:scale-105 transition-transform duration-1000"
+                        />
                         <div className="absolute inset-0 border-[16px] border-black/20 mix-blend-overlay pointer-events-none"></div>
                     </FadeIn>
 

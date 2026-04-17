@@ -1,6 +1,31 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+async function destroyCloudinaryFile(url: string | null | undefined) {
+  if (!url || !url.includes('res.cloudinary.com')) return;
+  try {
+    const parts = url.split('/');
+    const uploadIndex = parts.indexOf('upload');
+    if (uploadIndex === -1) return;
+    const pathParts = parts.slice(uploadIndex + 2);
+    const fullPath = pathParts.join('/');
+    const publicId = fullPath.substring(0, fullPath.lastIndexOf('.')) || fullPath;
+    
+    const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.mov');
+    await cloudinary.uploader.destroy(publicId, { resource_type: isVideo ? 'video' : 'image' });
+    console.log('ADMIN/SAVE: Archivo eliminado de Cloudinary:', publicId);
+  } catch (err) {
+    console.error('ADMIN/SAVE: Error eliminando archivo de Cloudinary:', err);
+  }
+}
 // Sanitizador simple compatible con CJS/ESM: elimina etiquetas HTML
 function sanitizeStr(val: string) {
   return typeof val === 'string' ? val.replace(/<[^>]*>?/gm, '') : val;
@@ -29,6 +54,7 @@ const AboutContentSchema = z.object({
 const ArtistSchema = z.object({
   name: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
   photo: z.string().nullish(),
+  profilePhoto: z.string().nullish(),
   bio: z.string().nullish().transform(v => v ? sanitizeStr(v) : v),
   youtube: z.string().nullish(), // URL, no es necesario purificar HTML, el parseo de URL bastaría si es estricto
 });
@@ -89,6 +115,12 @@ export async function POST(request: Request) {
     // 1. Guardar Home
     if (page === 'home') {
       console.log('ADMIN/SAVE: Guardando HOME', JSON.stringify(content));
+      const existing = await prisma.homeContent.findUnique({ where: { id: 'home-singleton' } });
+      if (existing) {
+        if (existing.heroBackground && existing.heroBackground !== content.heroBackground) await destroyCloudinaryFile(existing.heroBackground);
+        if (existing.featuredSessionGif && existing.featuredSessionGif !== content.featuredSessionGif) await destroyCloudinaryFile(existing.featuredSessionGif);
+        if (existing.featuredItemImage && existing.featuredItemImage !== content.featuredItemImage) await destroyCloudinaryFile(existing.featuredItemImage);
+      }
       const saved = await prisma.homeContent.upsert({
         where: { id: 'home-singleton' },
         update: {
@@ -126,6 +158,10 @@ export async function POST(request: Request) {
     // 2. Guardar About
     if (page === 'about') {
       console.log('ADMIN/SAVE: Guardando ABOUT', JSON.stringify(content));
+      const existing = await prisma.aboutContent.findUnique({ where: { id: 'about-singleton' } });
+      if (existing) {
+        if (existing.coverImage && existing.coverImage !== content.coverImage) await destroyCloudinaryFile(existing.coverImage);
+      }
       const saved = await prisma.aboutContent.upsert({
         where: { id: 'about-singleton' },
         update: {
@@ -167,6 +203,7 @@ export async function POST(request: Request) {
               create: safeArtists.map((a: any) => ({
                 name: a.name || 'Artista ' + Math.floor(Math.random() * 1000),
                 photo: a.photo,
+                profilePhoto: a.profilePhoto,
                 bio: a.bio,
                 youtube: a.youtube,
               })),
@@ -179,6 +216,24 @@ export async function POST(request: Request) {
         if (!id) {
           console.log('ADMIN/SAVE: Falta ID para editar sesión');
           return NextResponse.json({ error: 'Falta ID para editar' }, { status: 400 });
+        }
+
+        // Eliminamos fotos de Cloudinary viejas
+        const existingSession = await prisma.session.findUnique({
+          where: { id: id },
+          include: { artists: true }
+        });
+        if (existingSession) {
+          if (existingSession.gifUrl && existingSession.gifUrl !== sessionData.gifUrl) await destroyCloudinaryFile(existingSession.gifUrl);
+          if (existingSession.trailerUrl && existingSession.trailerUrl !== sessionData.trailerUrl) await destroyCloudinaryFile(existingSession.trailerUrl);
+          
+          const newPhotos = new Set(safeArtists.map((a: any) => a.photo).filter(Boolean));
+          const newProfilePhotos = new Set(safeArtists.map((a: any) => a.profilePhoto).filter(Boolean));
+          
+          for (const oldArtist of existingSession.artists as any[]) {
+            if (oldArtist.photo && !newPhotos.has(oldArtist.photo)) await destroyCloudinaryFile(oldArtist.photo);
+            if (oldArtist.profilePhoto && !newProfilePhotos.has(oldArtist.profilePhoto)) await destroyCloudinaryFile(oldArtist.profilePhoto);
+          }
         }
 
         // Eliminamos los artistas antiguos y los reemplazamos por los nuevos (estrategia sencilla de actualización 1 a muchos)
@@ -203,6 +258,7 @@ export async function POST(request: Request) {
               create: safeArtists.map((a: any) => ({
                 name: a.name || 'Artista ' + Math.floor(Math.random() * 1000),
                 photo: a.photo,
+                profilePhoto: a.profilePhoto,
                 bio: a.bio,
                 youtube: a.youtube,
               })),

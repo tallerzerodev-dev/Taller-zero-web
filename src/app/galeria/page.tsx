@@ -1,9 +1,23 @@
+import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { FadeIn } from '@/components/ui/Animations'
 import Image from 'next/image'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Galería | Registros Visuales Taller Zero',
+  description: 'Explora el archivo visual de Taller Zero. Fotografías de sesiones de techno en vivo desde locaciones industriales en Chile. Registros RAW de artistas underground.',
+  keywords: [
+    'Taller Zero galería', 'fotos techno Chile', 'registros visuales techno',
+    'fotografía techno', 'sesiones techno fotos', 'archivo visual underground',
+    'fotos dj set Chile', 'registros sesiones Chile', 'galeria techno',
+    'techno photography', 'techno live photos', 'underground sessions photos',
+    'dj set photography', 'techno archive', 'electronic music photography'
+  ],
+  alternates: { canonical: 'https://tallerzero.com/galeria' },
+}
 
 export default async function GaleriaPage({
     searchParams,

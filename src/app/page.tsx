@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 import { Ticker } from '@/components/ui/Ticker'
@@ -32,7 +33,7 @@ export default async function Home() {
                         {homeData.heroBackground.toLowerCase().endsWith('.mp4') || homeData.heroBackground.toLowerCase().endsWith('.webm') || homeData.heroBackground.toLowerCase().endsWith('.mov') ? (
                             <video src={homeData.heroBackground} autoPlay loop muted playsInline className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${homeData.heroBackground})` }}></div>
+                            <Image src={homeData.heroBackground} alt="Hero Background" fill className="object-cover object-center" />
                         )}
                     </div>
                 )}
@@ -103,10 +104,12 @@ export default async function Home() {
                             return isVideo ? (
                                 <video src={bgUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 origin-center" />
                             ) : (
-                                <div
-                                    className="absolute inset-0 bg-cover bg-center grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 origin-center"
-                                    style={{ backgroundImage: `url(${bgUrl})` }}
-                                ></div>
+                                <Image
+                                    src={bgUrl}
+                                    alt="Featured Session"
+                                    fill
+                                    className="object-cover object-center grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 origin-center"
+                                />
                             );
                         })()}
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-500"></div>
@@ -121,76 +124,6 @@ export default async function Home() {
                     </div>
                 </FadeIn>
             </section>
-
-            {/* THE STORE / BRAND FEATURE - OCULTADO TEMPORALMENTE */}
-            {false && (
-                <section className="px-6 md:px-12 lg:px-20 xl:px-24 py-24 w-full border-b border-[#333]">
-                    <div className="flex flex-col items-center text-center max-w-3xl mx-auto mb-16">
-                        <FadeIn y={20}>
-                            <span className="font-mono text-xs text-[#555] uppercase tracking-[0.3em] font-bold mb-4 inline-block">MERCANCÍA OFICIAL</span>
-                            <h2 className="text-4xl md:text-5xl font-bold uppercase tracking-tighter text-white mb-6">UNIFORMES DE INVIERNO</h2>
-                        </FadeIn>
-                    </div>
-
-                    <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Mock Product 1 */}
-                        <FadeIn y={10}>
-                            <Link href="/store" className="group block focus:outline-none h-full">
-                                <div className="border border-[#333] bg-[#0a0a0a] group-hover:border-white transition-colors duration-300 p-6 flex flex-col h-full relative overflow-hidden">
-                                    <span className="absolute top-4 right-4 font-mono text-[10px] bg-white text-black px-2 py-0.5 uppercase tracking-widest font-bold z-10">NUEVO</span>
-                                    <div className="w-full aspect-square bg-[#111] mb-6 flex items-center justify-center relative overflow-hidden">
-                                        {homeData?.featuredItemImage ? (
-                                            <div className="absolute inset-0 bg-cover bg-center grayscale mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity" style={{ backgroundImage: `url(${homeData?.featuredItemImage})` }}></div>
-                                        ) : (
-                                            <span className="text-[#333] font-mono text-xs uppercase tracking-widest">NO IMAGE</span>
-                                        )}
-                                    </div>
-                                    <h3 className="text-xl font-bold uppercase tracking-widest text-white mb-2">{homeData?.featuredItemTitle || 'HEAVY TEE "01"'}</h3>
-                                    <p className="font-mono text-xs text-[#888] mb-6 flex-1 line-clamp-2">{homeData?.featuredItemSubtitle || 'Algodón peinado 280g. Corte boxy.'}</p>
-                                    <div className="flex justify-between items-center border-t border-[#333] pt-4 group-hover:border-white/50 transition-colors">
-                                        <span className="font-mono text-sm text-white">$45.000 COP</span>
-                                        <span className="font-mono text-[10px] text-[#555] uppercase tracking-widest group-hover:text-white transition-colors">Ver Detalles +</span>
-                                    </div>
-                                </div>
-                            </Link>
-                        </FadeIn>
-                        {/* Mock Product 2 */}
-                        <FadeIn delay={0.1} y={10}>
-                            <div className="border border-[#333] bg-[#0a0a0a] opacity-50 focus:outline-none h-full p-6 flex flex-col relative">
-                                <div className="w-full aspect-square bg-[#111] mb-6 flex items-center justify-center relative">
-                                    <span className="text-[#333] font-mono text-xs uppercase tracking-widest transform -rotate-45">AGOTADO</span>
-                                </div>
-                                <h3 className="text-xl font-bold uppercase tracking-widest text-white mb-2">HOODIE "VOID"</h3>
-                                <p className="font-mono text-xs text-[#888] mb-6 flex-1 line-clamp-2">Polar fleece 320g. Oversized.</p>
-                                <div className="flex justify-between items-center border-t border-[#333] pt-4">
-                                    <span className="font-mono text-sm text-[#555]">$85.000 COP</span>
-                                    <span className="font-mono text-[10px] text-[#555] uppercase tracking-widest">SOLD OUT</span>
-                                </div>
-                            </div>
-                        </FadeIn>
-                        {/* Mock Product 3 */}
-                        <FadeIn delay={0.2} y={10}>
-                            <div className="border border-[#333] bg-[#0a0a0a] focus:outline-none h-full p-6 flex flex-col relative group">
-                                <div className="w-full aspect-square bg-[#111] mb-6 flex items-center justify-center relative">
-                                    <span className="text-[#555] font-mono text-[10px] uppercase tracking-widest">PRÓXIMAMENTE</span>
-                                </div>
-                                <h3 className="text-xl font-bold uppercase tracking-widest text-[#aaa] group-hover:text-white transition-colors mb-2">BEAINE "RAW"</h3>
-                                <p className="font-mono text-xs text-[#888] mb-6 flex-1 line-clamp-2">Tejido acrílico. Etiqueta frontal.</p>
-                                <div className="flex justify-between items-center border-t border-[#333] pt-4">
-                                    <span className="font-mono text-sm text-[#555]">TBA</span>
-                                    <span className="font-mono text-[10px] text-[#555] uppercase tracking-widest">COMING SOON</span>
-                                </div>
-                            </div>
-                        </FadeIn>
-                    </StaggerContainer>
-
-                    <div className="flex justify-center mt-12">
-                        <Link href="/store" className="font-mono text-xs uppercase tracking-[0.2em] text-[#888] hover:text-white border border-[#333] px-6 py-3 hover:border-white transition-colors">
-                            VER CATÁLOGO COMPLETO
-                        </Link>
-                    </div>
-                </section>
-            )}
 
         </main>
     )

@@ -15,19 +15,31 @@ export async function generateMetadata({ params }: { params: { id: string, artis
     const desc = artist.bio || `Live set de ${artist.name} en ${(artist as any).session.title}. Registros visuales Taller Zero.`
 
     return {
-        title: `${artist.name} | ${(artist as any).session.title}`,
+        title: `${artist.name} | ${(artist as any).session.title} | Taller Zero`,
         description: desc,
-        keywords: [artist.name, (artist as any).session.title, 'techno', 'live set', 'dj set', 'underground'],
+        keywords: [
+          artist.name,
+          (artist as any).session.title,
+          // Nacional
+          'techno Chile', 'dj set Chile', 'djs chilenos', 'hardgroove Chile',
+          'hypnotic techno Chile', 'underground Chile', 'Taller Zero', 'sesiones techno Chile',
+          'música electrónica Chile', 'artistas locales techno', 'djs techno chilenos',
+          // Internacional
+          'techno', 'dj set', 'live set', 'live set techno', 'underground techno',
+          'hypnotic techno', 'hardgroove', 'hardhouse', 'raw techno', 'industrial techno',
+          'techno sessions', 'electronic music', 'groove techno', 'techno live', 'dj techno'
+        ],
+        alternates: { canonical: `https://tallerzero.com/sessions/${params.id}/artist/${params.artistId}` },
         openGraph: {
             title: `${artist.name} | Live Set en Taller Zero`,
             description: desc,
-            images: artist.photo ? [{ url: artist.photo }] : undefined,
+            images: ((artist as any).profilePhoto || artist.photo) ? [{ url: (artist as any).profilePhoto || artist.photo || '' }] : undefined,
         },
         twitter: {
             card: 'summary_large_image',
             title: artist.name,
             description: desc,
-            images: artist.photo ? [artist.photo] : undefined,
+            images: ((artist as any).profilePhoto || artist.photo) ? [(artist as any).profilePhoto || artist.photo || ''] : undefined,
         }
     }
 }
@@ -58,7 +70,8 @@ export default async function ArtistDetailPage({ params }: { params: { id: strin
         where: {
             id: params.artistId,
             sessionId: params.id
-        }
+        },
+        include: { session: true }
     })
 
     if (!artist) {
@@ -75,75 +88,80 @@ export default async function ArtistDetailPage({ params }: { params: { id: strin
     return (
         <main className="flex-1 flex flex-col bg-black min-h-screen pt-24 pb-32">
             {/* Header with back button */}
-            <section className="px-6 w-full max-w-[1400px] mx-auto mb-12 flex flex-col md:flex-row items-center justify-between border-b border-[#333] pb-8 gap-4">
+            <section className="px-6 w-full max-w-[1400px] mx-auto mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
                 <FadeIn>
                     <Link href={`/sessions/${params.id}`} className="font-mono text-xs uppercase tracking-[0.2em] text-[#888] hover:text-white flex items-center gap-2 border border-[#333] px-3 py-1.5 w-fit hover:border-white transition-colors">
                         ← Volver al Lineup
                     </Link>
                 </FadeIn>
-                <FadeIn delay={0.2} className="w-full md:w-auto text-center font-mono text-xs text-[#ff3333] uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#222]">
-                    [ LIVE SET. ] TALLER ZERO
+                <FadeIn delay={0.2} className="w-full md:w-auto text-center font-mono text-xs text-white uppercase tracking-widest bg-[#111] px-4 py-2 border border-[#222]">
+                    LIVE SET // {artist.session?.sessionNumber || 'S00'}
                 </FadeIn>
             </section>
 
-            {/* ARTIST HERO: PHOTO + YOUTUBE PLAYER */}
-            <section className="px-6 w-full max-w-[1400px] mx-auto mb-16">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* FULL WIDTH YOUTUBE PLAYER */}
+            <section className="w-full max-w-[1400px] mx-auto px-6 mb-16">
+                <FadeIn delay={0.3}>
+                    {artist.youtube ? (
+                        <div className="w-full aspect-video border border-[#333] bg-[#050505] relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-[#ffffff]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
+                            <iframe
+                                className="absolute inset-0 w-full h-full transition-all duration-[1500ms] p-1 md:p-2"
+                                src={getEmbedUrl(artist.youtube)}
+                                title={`Set de ${artist.name}`}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen>
+                            </iframe>
+                        </div>
+                    ) : (
+                        <div className="w-full aspect-video border border-[#333] bg-[#050505] flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[#111] opacity-50 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#333] via-[#111] to-[#0a0a0a]"></div>
+                            <span className="font-mono text-[#555] uppercase tracking-widest text-sm relative z-10 border border-[#333] px-6 py-3 bg-black">TRANSMISIÓN AÚN NO DISPONIBLE</span>
+                        </div>
+                    )}
+                </FadeIn>
+            </section>
 
+            {/* ARTIST INFO: PHOTO & BIO */}
+            <section className="px-6 w-full max-w-[1400px] mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                     {/* Artist portrait & Name */}
-                    <FadeIn delay={0.3} className="lg:col-span-4 flex flex-col gap-6">
-                        <div className="aspect-[3/4] relative border border-[#333] bg-[#0a0a0a] grayscale hover:grayscale-0 transition-all duration-[2000ms] overflow-hidden group mix-blend-luminosity hover:mix-blend-normal">
+                    <FadeIn delay={0.4} className="lg:col-span-5 flex flex-col gap-6">
+                        <div className="w-full relative border border-[#333] bg-[#0a0a0a] grayscale hover:grayscale-0 transition-all duration-[2000ms] overflow-hidden group aspect-[4/5] sm:aspect-square lg:aspect-[4/5]">
                             <Image
-                                src={artist.photo || '/placeholder.jpg'}
+                                src={(artist as any).profilePhoto || artist.photo || '/placeholder.jpg'}
                                 alt={artist.name}
                                 fill
-                                className="object-cover scale-105 group-hover:scale-100 transition-transform duration-1000"
+                                className="object-cover object-[center_top] scale-105 group-hover:scale-100 transition-transform duration-1000"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                            <h1 className="absolute bottom-6 left-6 text-4xl md:text-5xl font-bold uppercase tracking-tighter text-white z-10 m-0 leading-none break-all border-l-4 pl-3 border-[#ff3333]">
-                                {artist.name}
-                            </h1>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+                            <div className="absolute bottom-6 left-6 right-6">
+                                <h1 className="text-5xl md:text-6xl font-bold uppercase tracking-tighter text-white z-10 m-0 leading-none break-words">
+                                    {artist.name}
+                                </h1>
+                            </div>
                         </div>
                     </FadeIn>
 
-                    {/* Video and Info */}
-                    <FadeIn delay={0.4} className="lg:col-span-8 flex flex-col h-full gap-8">
-                        {/* THE YOUTUBE PLAYER */}
-                        {artist.youtube ? (
-                            <div className="w-full aspect-video border-[1px] border-[#333] bg-[#050505] p-2 relative">
-                                <iframe
-                                    className="absolute inset-0 w-full h-full grayscale hover:grayscale-0 transition-all duration-[1500ms] p-2"
-                                    src={getEmbedUrl(artist.youtube)}
-                                    title={`Set de ${artist.name}`}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen>
-                                </iframe>
-                            </div>
-                        ) : (
-                            <div className="w-full aspect-video border-[1px] border-[#333] bg-[#050505] p-2 flex flex-col items-center justify-center">
-                                <span className="font-mono text-[#555] uppercase tracking-widest text-sm">TRANSMISIÓN AÚN NO DISPONIBLE</span>
-                            </div>
-                        )}
-
-                        {/* BIO & MANIFESTO */}
-                        <div className="border border-[#222] bg-[#0a0a0a] p-8 md:p-12 mb-8">
-                            <div className="flex gap-4 items-center mb-6 border-b border-[#333] pb-4">
-                                <span className="w-3 h-3 bg-[#ff3333] block"></span>
-                                <h2 className="text-xl font-bold tracking-widest uppercase text-white">Biografía & Manifiesto</h2>
+                    {/* BIO & MANIFESTO */}
+                    <FadeIn delay={0.5} className="lg:col-span-7 flex flex-col h-full gap-8">
+                        <div className="border-t border-[#333] pt-8 lg:pt-0 lg:border-t-0">
+                            <div className="flex gap-4 items-center mb-8">
+                                <span className="font-mono text-[10px] text-white bg-white/10 px-3 py-1 uppercase tracking-widest border border-[#333]">PERFIL // DATA</span>
+                                <h2 className="text-2xl font-bold tracking-widest uppercase text-white">Biografía & Manifiesto</h2>
                             </div>
                             {artist.bio ? (
-                                <p className="font-mono text-sm leading-relaxed text-[#888] whitespace-pre-line">
+                                <div className="font-mono text-sm leading-relaxed text-[#888] whitespace-pre-line text-justify columns-1 sm:columns-2 gap-8">
                                     {artist.bio}
-                                </p>
+                                </div>
                             ) : (
-                                <p className="font-mono text-sm leading-relaxed text-[#555]">
-                                    [ Archivo confidencial // Ninguna biografía ha sido proporcionada. ]
+                                <p className="font-mono text-sm leading-relaxed text-[#555] border-l-2 border-[#333] pl-4">
+                                    [ Archivo confidencial // Ninguna biografía ha sido proporcionada para este individuo. ]
                                 </p>
                             )}
                         </div>
                     </FadeIn>
-
                 </div>
             </section>
         </main>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 import { prisma } from '@/lib/prisma'
 import { TrailerVideo } from '@/components/ui/TrailerVideo'
@@ -18,18 +19,30 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     const desc = `Live set RAW de ${session.title}. Featuring: ${artistNames}. Formato original desde Taller Zero.`
 
     return {
-        title: `${session.title}`,
-        description: desc,
-        keywords: [session.title, 'Live Set', 'Sesiones en Vivo', ...session.artists.map((a: any) => a.name), 'Taller Zero', 'techno'],
+        title: `${session.title} | Taller Zero`,
+        description: `Live set RAW de ${session.title}. Featuring: ${artistNames}. Sesión de techno, hypnotic techno y música underground desde Chile grabada en formato RAW por Taller Zero.`,
+        keywords: [
+          ...session.artists.map((a: any) => a.name),
+          session.title,
+          // Nacional
+          'techno Chile', 'dj set Chile', 'sesiones techno Chile', 'djs chilenos',
+          'hardgroove Chile', 'hypnotic techno Chile', 'underground Chile', 'Taller Zero',
+          'sets en vivo Chile', 'música electrónica Chile', 'artistas locales techno',
+          // Internacional
+          'techno', 'dj set', 'live set techno', 'underground techno', 'hypnotic techno',
+          'hardgroove', 'hardhouse', 'raw techno', 'industrial techno', 'techno sessions',
+          'electronic music', 'groove techno', 'techno live', 'bounce techno', 'dark techno'
+        ],
+        alternates: { canonical: `https://tallerzero.com/sessions/${session.id}` },
         openGraph: {
             title: `${session.title} | Taller Zero`,
-            description: desc,
+            description: `Live set RAW de ${session.title}. Featuring: ${artistNames}. Formato original desde Taller Zero.`,
             images: session.gifUrl ? [{ url: session.gifUrl }] : undefined,
         },
         twitter: {
             card: 'summary_large_image',
             title: session.title,
-            description: desc,
+            description: `Live set RAW de ${session.title}. Featuring: ${artistNames}.`,
             images: session.gifUrl ? [session.gifUrl] : undefined,
         }
     }
@@ -106,46 +119,44 @@ export default async function SessionPage({ params }: { params: { id: string } }
                 </div>
 
                 {session.artists && session.artists.length > 0 ? (
-                    <StaggerContainer className="flex flex-col gap-12">
+                    <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {session.artists.map((artist: any, idx: number) => (
                             <FadeIn key={artist.id}>
-                                <Link href={`/sessions/${session.id}/artist/${artist.id}`} className="group block w-full focus:outline-none active:scale-[0.98] transition-transform duration-200 ease-out">
-                                    <div className="w-full flex flex-col md:flex-row relative bg-black border border-[#333] group-hover:border-white transition-colors duration-700 overflow-hidden">
+                                <Link href={`/sessions/${session.id}/artist/${artist.id}`} className="group block w-full focus:outline-none active:scale-[0.98] transition-transform duration-300 ease-out h-full">
+                                    <div className="w-full h-[500px] md:h-[600px] relative bg-black border border-[#333] group-hover:border-[#777] transition-all duration-700 overflow-hidden rounded-sm">
+                                        
+                                        {/* BACKGROUND IMAGE */}
+                                        <div className="absolute inset-0 z-0 transition-transform duration-[2000ms] group-hover:scale-105">
+                                            {artist.photo ? (
+                                                <Image src={artist.photo} alt={artist.name} fill className="object-cover object-[center_top] grayscale-[0.5] mix-blend-luminosity group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-700" />
+                                            ) : (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-[#111]"><span className="font-mono text-xs uppercase text-[#555]">No Photo</span></div>
+                                            )}
+                                        </div>
+                                        
+                                        {/* GRADIENT OVERLAYS */}
+                                        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/90 z-10"></div>
+                                        <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none"></div>
 
-                                        {/* FONDO GENERATIVO ANIMADO (Repulsión por Mouse) */}
-                                        <div className="absolute inset-0 z-0 pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity duration-[2000ms] flex items-center justify-center overflow-hidden">
+                                        {/* PARTICLES */}
+                                        <div className="absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-40 transition-opacity duration-1000">
                                             <ParticleBackground />
                                         </div>
 
-                                        {/* COLUMNA 1: INFO Y TRACKING (Panel Izquierdo IG) */}
-                                        <div className="hidden md:flex flex-1 border-r border-[#333] z-10 flex-col justify-end p-8 relative">
-                                            <div className="absolute top-4 left-4 font-mono text-[10px] text-[#555] uppercase border border-[#333] px-2 py-0.5">
-                                                TALLER ZERO // {session.sessionNumber || 'S00'}
+                                        {/* CONTENT */}
+                                        <div className="absolute inset-0 z-20 flex flex-col justify-between p-6 md:p-8">
+                                            {/* Top info */}
+                                            <div className="flex justify-between items-start w-full">
+                                                <span className="font-mono text-[10px] bg-white text-black px-2 py-0.5 uppercase tracking-widest font-bold shadow-lg">ARTISTA 0{idx + 1}</span>
+                                                <div className="font-mono text-[10px] text-white border border-white/30 backdrop-blur-md bg-black/30 px-3 py-1 uppercase tracking-widest group-hover:bg-white group-hover:text-black transition-colors">
+                                                    ► LIVE SET
+                                                </div>
                                             </div>
-                                            <span className="font-mono text-xs text-[#555] uppercase tracking-widest">Alineación</span>
-                                            <h4 className="text-xl font-bold uppercase tracking-wider text-[#888] mt-1 group-hover:text-[#ff3333] transition-colors">{session.title}</h4>
-                                        </div>
 
-                                        {/* COLUMNA 2: FOTO DEL ARTISTA (Panel Central IG) */}
-                                        <div className="w-full md:w-[450px] lg:w-[600px] shrink-0 aspect-[4/5] relative z-10 border-r border-[#333] bg-[#0a0a0a] group-hover:scale-[1.02] transition-transform duration-[1500ms]">
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80 z-10 pointer-events-none"></div>
-                                            {artist.photo ? (
-                                                <div className="absolute inset-0 bg-cover bg-center grayscale mix-blend-luminosity group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-[1500ms] z-0" style={{ backgroundImage: `url(${artist.photo})` }}></div>
-                                            ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center grayscale opacity-10 bg-[#111] z-0"><span className="font-mono text-xs uppercase">No Photo</span></div>
-                                            )}
-                                            {/* Indicador superior como en posts de Instagram */}
-                                            <div className="absolute top-4 right-4 z-20 w-4 h-4 border-2 border-white rounded-sm opactiy-80"></div>
-                                        </div>
-
-                                        {/* COLUMNA 3: ACCIONAMIENTO (Panel Derecho IG) */}
-                                        <div className="flex-1 flex flex-col justify-center sm:justify-between items-center sm:items-end text-center sm:text-right p-8 z-10 h-64 sm:h-auto">
-                                            <div className="font-mono text-[10px] text-white border border-[#555] group-hover:border-white px-4 py-2 uppercase tracking-widest bg-black/50 backdrop-blur-sm group-hover:bg-white group-hover:text-black transition-all mb-4 sm:mb-0">
-                                                ► VER LIVE SET
-                                            </div>
-                                            <div className="flex flex-col items-center sm:items-end">
-                                                <span className="font-mono text-[10px] bg-white text-black px-2 py-0.5 uppercase tracking-widest font-bold mb-2 inline-block">ARTISTA 0{idx + 1}</span>
-                                                <h3 className="max-w-full text-[clamp(2.5rem,8vw,4rem)] lg:text-[5rem] text-right font-bold uppercase tracking-tighter text-white leading-[0.85] break-words">
+                                            {/* Bottom Name */}
+                                            <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                                <span className="font-mono text-[10px] text-[#aaa] uppercase tracking-[0.2em] mb-2 block group-hover:text-white transition-colors">TALLER ZERO // {session.sessionNumber || 'S00'}</span>
+                                                <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-white leading-[0.9] drop-shadow-2xl">
                                                     {artist.name}
                                                 </h3>
                                             </div>

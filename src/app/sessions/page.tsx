@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 export const dynamic = 'force-dynamic'
@@ -10,9 +11,21 @@ export async function generateMetadata(): Promise<Metadata> {
   sessions.forEach((s: any) => s.artists.forEach((a: any) => allArtists.add(a.name)))
 
   return {
-    title: 'Archivo | Sesiones en Vivo',
-    description: 'Explora todo el archivo visual de Taller Zero. Sets RAW, Techno y artistas underground.',
-    keywords: Array.from(allArtists).concat(['techno', 'live set', 'sesiones', 'bounce', 'underground']),
+    title: 'Archivo | Sesiones en Vivo de Techno',
+    description: 'Archivo completo de sesiones en vivo de Taller Zero. DJ sets RAW de techno, hypnotic techno, hardgroove y música underground desde Chile. Escucha a los mejores DJs chilenos.',
+    keywords: Array.from(allArtists).concat([
+      // Nacional
+      'techno Chile', 'dj set Chile', 'sesiones techno Chile', 'djs chilenos', 'techno Santiago',
+      'hardgroove Chile', 'hypnotic techno Chile', 'hardbounce Chile', 'música electrónica Chile',
+      'artistas locales techno', 'djs techno chilenos', 'underground Chile', 'sets en vivo Chile',
+      'sesiones en vivo Chile', 'techno nacional', 'Taller Zero',
+      // Internacional
+      'techno', 'techno music', 'dj set', 'live set techno', 'underground techno',
+      'hypnotic techno', 'hardgroove', 'hard groove', 'hardhouse', 'hard house',
+      'raw techno', 'industrial techno', 'groovy techno', 'techno sessions',
+      'electronic music', 'techno artists', 'groove techno', 'techno set', 'techno live',
+      'techno underground', 'bounce techno', 'dark techno', 'techno archive'
+    ]),
   }
 }
 
@@ -78,8 +91,12 @@ export default async function SessionsPage() {
                         return isVideo ? (
                           <video src={bgUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0" />
                         ) : (
-                          <div className="absolute inset-0 bg-cover bg-center grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0"
-                            style={{ backgroundImage: `url(${bgUrl})` }}></div>
+                          <Image
+                            src={bgUrl}
+                            alt={session.title}
+                            fill
+                            className="object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0"
+                          />
                         );
                       })()}
                       <div className="absolute bottom-4 right-4 z-10 w-10 h-10 rounded-full border border-white/50 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">

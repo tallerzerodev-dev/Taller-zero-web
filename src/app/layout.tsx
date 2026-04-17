@@ -23,21 +23,41 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://tallerzero.com'),
   title: {
     template: '%s | Taller Zero',
-    default: 'Taller Zero | Live Sessions',
+    default: 'Taller Zero | Sesiones de Techno en Vivo desde Chile',
   },
-  description: 'Archivo visual y plataforma de música electrónica underground. Sesiones en formato RAW, sin censura ni fake shit. Techno, hardbounce, hypnotic techno y más desde Chile.',
-  keywords: ['Taller Zero', 'Techno', 'set dj', 'raw techno', 'techno chile', 'hypnotic techno', 'hardbounce', 'bounce', 'musica electronica', 'musica electronica chile', 'live set', 'underground'],
+  description: 'Taller Zero: plataforma de música electrónica underground desde Chile. DJ sets en vivo de techno, hypnotic techno, hardgroove y hardbounce. Sets RAW sin censura desde locaciones industriales. Los mejores DJs chilenos.',
+  keywords: [
+    // Marca
+    'Taller Zero',
+    // Nacional ES
+    'techno Chile', 'dj set Chile', 'sesiones techno Chile', 'djs chilenos',
+    'techno Santiago', 'hardgroove Chile', 'hypnotic techno Chile', 'hardbounce Chile',
+    'música electrónica Chile', 'artistas locales techno', 'djs techno chilenos',
+    'underground Chile', 'sets en vivo Chile', 'sesiones en vivo Chile', 'techno nacional',
+    'sets dj Chile', 'artistas underground Chile', 'sesiones de techno',
+    'dj set techno', 'techno hardgroove', 'groove techno Chile',
+    // Internacional EN
+    'techno', 'techno music', 'dj set', 'live set techno', 'underground techno',
+    'hypnotic techno', 'hardgroove', 'hard groove', 'hardhouse', 'hard house',
+    'raw techno', 'industrial techno', 'groovy techno', 'techno sessions',
+    'electronic music', 'techno artists', 'groove techno', 'techno set', 'techno live',
+    'techno underground', 'bounce techno', 'dark techno', 'techno archive',
+    'dj techno', 'techno mix', 'techno dj', 'hard techno', 'techno latino',
+    'latin techno', 'south american techno', 'techno south america'
+  ],
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
+  alternates: { canonical: 'https://tallerzero.com' },
   openGraph: {
     title: 'Taller Zero',
-    description: 'Archivo visual y plataforma de música electrónica underground. Sesiones en formato RAW, sin censura ni fake shit. Techno, hardbounce, hypnotic techno y más desde Chile.',
+    description: 'Plataforma de música electrónica underground desde Chile. DJ sets RAW de techno, hypnotic techno, hardgroove y más.',
     url: 'https://tallerzero.com',
     siteName: 'Taller Zero',
     images: [
       {
-        url: '/placeholder.jpg', // Placeholder de Cloudinary si luego quieres subir el logo definitivo
+        url: '/placeholder.jpg',
         width: 1200,
         height: 630,
-        alt: 'Taller Zero Portada',
+        alt: 'Taller Zero - Sesiones de Techno en Vivo',
       },
     ],
     locale: 'es_CL',
@@ -46,7 +66,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Taller Zero',
-    description: 'Archivo visual y plataforma de música electrónica underground. Sesiones en formato RAW desde Chile.',
+    description: 'Plataforma de música electrónica underground desde Chile. Sets RAW de techno y más.',
   },
 }
 

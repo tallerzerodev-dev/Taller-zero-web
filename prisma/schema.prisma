@@ -41,15 +41,16 @@ model Session {
 }
 
 model Artist {
-  id        String   @id @default(cuid())
-  name      String
-  photo     String?
-  bio       String?  @db.Text
-  youtube   String?
+  id           String   @id @default(cuid())
+  name         String
+  photo        String?  // Usado para la tarjeta del Lineup
+  profilePhoto String?  // Usado para la página interna del artista
+  bio          String?  @db.Text
+  youtube      String?
 
   // Relación obligatoria con Session
-  sessionId String
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId    String
+  session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 // ==========================================
