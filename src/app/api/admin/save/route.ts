@@ -32,46 +32,46 @@ function sanitizeStr(val: string) {
 }
 
 const HomeContentSchema = z.object({
-  heroTitle: z.string().optional().default('').transform(sanitizeStr),
-  heroSubtitle: z.string().optional().default('').transform(sanitizeStr),
-  heroBackground: z.string().optional().default(''),
-  tickerText: z.string().optional().default('').transform(sanitizeStr),
-  featuredSessionId: z.string().optional().default('').transform(sanitizeStr),
-  featuredSessionTitle: z.string().optional().default('').transform(sanitizeStr),
-  featuredSessionGif: z.string().optional().default(''),
-  featuredItemImage: z.string().optional().default(''),
-  featuredItemTitle: z.string().optional().default('').transform(sanitizeStr),
-  featuredItemSubtitle: z.string().optional().default('').transform(sanitizeStr),
-  storeEnabled: z.boolean().optional().default(false),
+  heroTitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  heroSubtitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  heroBackground: z.string().nullish().transform(v => v || ''),
+  tickerText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  featuredSessionId: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  featuredSessionTitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  featuredSessionGif: z.string().nullish().transform(v => v || ''),
+  featuredItemImage: z.string().nullish().transform(v => v || ''),
+  featuredItemTitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  featuredItemSubtitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  storeEnabled: z.boolean().nullish().transform(v => Boolean(v)),
 });
 
 const AboutContentSchema = z.object({
-  title: z.string().optional().default('').transform(sanitizeStr),
-  content: z.string().optional().default('').transform(sanitizeStr),
-  coverImage: z.string().optional().default(''),
+  title: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  content: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  coverImage: z.string().nullish().transform(v => v || ''),
 });
 
 const ArtistSchema = z.object({
-  name: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
+  name: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   photo: z.string().nullish(),
   profilePhoto: z.string().nullish(),
-  bio: z.string().nullish().transform(v => v ? sanitizeStr(v) : v),
+  bio: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   youtube: z.string().nullish(), // URL, no es necesario purificar HTML, el parseo de URL bastaría si es estricto
 });
 
 const SessionContentSchema = z.object({
-  id: z.string().optional(),
-  title: z.string().transform(sanitizeStr),
-  sessionNumber: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
-  dateText: z.string().optional().default('').transform(sanitizeStr),
-  gifUrl: z.string().optional(),
-  trailerUrl: z.string().optional(),
-  spinup: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
-  showLeftColInfo: z.boolean().optional(),
-  leftColLine1: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
-  leftColLine2: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
-  leftColLine3: z.string().optional().transform(v => v ? sanitizeStr(v) : v),
-  artists: z.array(ArtistSchema).optional().default([]),
+  id: z.string().nullish().transform(v => v || ''),
+  title: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  sessionNumber: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  dateText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  gifUrl: z.string().nullish().transform(v => v || ''),
+  trailerUrl: z.string().nullish().transform(v => v || ''),
+  spinup: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  showLeftColInfo: z.boolean().nullish().transform(v => Boolean(v)),
+  leftColLine1: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  leftColLine2: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  leftColLine3: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  artists: z.array(ArtistSchema).nullish().transform(v => v || []),
 });
 
 const SaveActionSchema = z.discriminatedUnion('page', [
