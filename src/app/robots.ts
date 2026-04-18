@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/admin/', '/api/', '/login'],
       },
     ],
-    sitemap: 'https://tallerzero.com/sitemap.xml',
+    sitemap: 'https://taller-zero.cl/sitemap.xml',
   }
 }

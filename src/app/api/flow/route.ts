@@ -71,6 +71,8 @@ export async function POST(req: Request) {
             concept: parsed.data.concept,
             email: parsed.data.email,
             orderId: parsed.data.orderId,
+            urlReturn: 'https://taller-zero.cl/checkout/result',
+            urlConfirmation: 'https://taller-zero.cl/api/flow/confirm',
         };
         // Firmar los parámetros
         const s = signParams(params, secretKey);

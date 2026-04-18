@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
@@ -29,14 +29,15 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
             <div className="w-full px-6 md:px-12 lg:px-20 xl:px-24 h-20 flex items-center justify-between">
 
                 {/* Logo */}
-                <Link href="/" className="flex items-center group">
-                    <div className="relative w-48 h-16 md:w-64 md:h-20 transition-transform duration-500 group-hover:scale-105">
+                <Link href="/" className="flex items-center group relative z-10">
+                    <div className="relative w-32 h-12 sm:w-40 sm:h-14 md:w-56 md:h-16 lg:w-64 lg:h-20 transition-transform duration-500 group-hover:scale-105">
                         <Image
                             src="/logo_taller_zero.png"
                             alt="Taller Zero Logo"
                             fill
-                            className="object-contain object-left scale-[1.7] origin-left"
+                            className="object-contain object-left scale-[1.3] sm:scale-[1.4] md:scale-[1.6] origin-left"
                             priority
+                            unoptimized
                         />
                     </div>
                 </Link>
@@ -78,10 +79,11 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
 
                 {/* Mobile Toggle */}
                 <button
-                    className="md:hidden p-2"
+                    className="md:hidden p-3 -mr-3 relative z-10 flex items-center justify-center"
                     onClick={() => setIsOpen(!isOpen)}
+                    aria-label="Toggle menu"
                 >
-                    {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    {isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
                 </button>
 
             </div>

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     'techno photography', 'techno live photos', 'underground sessions photos',
     'dj set photography', 'techno archive', 'electronic music photography'
   ],
-  alternates: { canonical: 'https://tallerzero.com/galeria' },
+  alternates: { canonical: 'https://taller-zero.cl/galeria' },
 }
 
 export default async function GaleriaPage({

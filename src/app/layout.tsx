@@ -20,7 +20,7 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://tallerzero.com'),
+  metadataBase: new URL('https://taller-zero.cl'),
   title: {
     template: '%s | Taller Zero',
     default: 'Taller Zero | Sesiones de Techno en Vivo desde Chile',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   description: 'Taller Zero: plataforma de música electrónica underground desde Chile. DJ sets en vivo de techno, hypnotic techno, hardgroove y hardbounce. Sets RAW sin censura desde locaciones industriales. Los mejores DJs chilenos.',
   keywords: [
     // Marca
-    'Taller Zero',
+    'Taller Zero', 'taller zero', 'taller 0', 'taller-zero', 'tallerzero',
     // Nacional ES
     'techno Chile', 'dj set Chile', 'sesiones techno Chile', 'djs chilenos',
     'techno Santiago', 'hardgroove Chile', 'hypnotic techno Chile', 'hardbounce Chile',
@@ -46,11 +46,11 @@ export const metadata: Metadata = {
     'latin techno', 'south american techno', 'techno south america'
   ],
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
-  alternates: { canonical: 'https://tallerzero.com' },
+  alternates: { canonical: 'https://taller-zero.cl' },
   openGraph: {
     title: 'Taller Zero',
     description: 'Plataforma de música electrónica underground desde Chile. DJ sets RAW de techno, hypnotic techno, hardgroove y más.',
-    url: 'https://tallerzero.com',
+    url: 'https://taller-zero.cl',
     siteName: 'Taller Zero',
     images: [
       {

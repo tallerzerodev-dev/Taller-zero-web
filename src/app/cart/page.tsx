@@ -115,7 +115,7 @@ export default function CartPage() {
                                 <span className="text-[10px] text-gray-600 tracking-widest text-center mt-2">
                                     PAGO 100% SEGURO
                                     <br />
-                                    ENCRIPTADO VIA WEBPAY MERCADOPAGO
+                                    ENCRIPTADO VIA FLOW
                                 </span>
                             </div>
                         </div>

@@ -20,8 +20,8 @@ const nextConfig = {
         const isDev = process.env.NODE_ENV !== 'production';
         // Agregar ws://127.0.0.1:* y ws://localhost:* a connect-src solo en dev
         const connectSrc = isDev
-            ? "'self' https://api.mercadopago.com https://accounts.google.com https://api.cloudinary.com ws://127.0.0.1:* ws://localhost:*"
-            : "'self' https://api.mercadopago.com https://accounts.google.com https://api.cloudinary.com";
+            ? "'self' https://accounts.google.com https://api.cloudinary.com ws://127.0.0.1:* ws://localhost:*"
+            : "'self' https://accounts.google.com https://api.cloudinary.com";
         return [
             {
                 source: '/(.*)',
@@ -52,7 +52,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://sdk.mercadopago.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src ${connectSrc} blob:; frame-src https://sdk.mercadopago.com https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://res.cloudinary.com; worker-src 'self' blob:;`,
+                        value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src ${connectSrc} blob:; frame-src https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://res.cloudinary.com; worker-src 'self' blob:;`,
                     },
                 ],
             },

@@ -18,18 +18,18 @@ export async function generateMetadata({ params }: { params: { id: string, artis
         title: `${artist.name} | ${(artist as any).session.title} | Taller Zero`,
         description: desc,
         keywords: [
-          artist.name,
-          (artist as any).session.title,
-          // Nacional
-          'techno Chile', 'dj set Chile', 'djs chilenos', 'hardgroove Chile',
-          'hypnotic techno Chile', 'underground Chile', 'Taller Zero', 'sesiones techno Chile',
-          'música electrónica Chile', 'artistas locales techno', 'djs techno chilenos',
-          // Internacional
-          'techno', 'dj set', 'live set', 'live set techno', 'underground techno',
-          'hypnotic techno', 'hardgroove', 'hardhouse', 'raw techno', 'industrial techno',
-          'techno sessions', 'electronic music', 'groove techno', 'techno live', 'dj techno'
+            artist.name,
+            (artist as any).session.title,
+            // Nacional
+            'techno Chile', 'dj set Chile', 'djs chilenos', 'hardgroove Chile',
+            'hypnotic techno Chile', 'underground Chile', 'Taller Zero', 'sesiones techno Chile',
+            'música electrónica Chile', 'artistas locales techno', 'djs techno chilenos',
+            // Internacional
+            'techno', 'dj set', 'live set', 'live set techno', 'underground techno',
+            'hypnotic techno', 'hardgroove', 'hardhouse', 'raw techno', 'industrial techno',
+            'techno sessions', 'electronic music', 'groove techno', 'techno live', 'dj techno'
         ],
-        alternates: { canonical: `https://tallerzero.com/sessions/${params.id}/artist/${params.artistId}` },
+        alternates: { canonical: `https://taller-zero.cl/sessions/${params.id}/artist/${params.artistId}` },
         openGraph: {
             title: `${artist.name} | Live Set en Taller Zero`,
             description: desc,

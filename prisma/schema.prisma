@@ -153,3 +153,13 @@ model OrderItem {
 
   createdAt   DateTime @default(now())
 }
+
+// ==========================================
+// 4. MARKETING / NEWSLETTER
+// ==========================================
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

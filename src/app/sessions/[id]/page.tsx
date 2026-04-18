@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
           'hardgroove', 'hardhouse', 'raw techno', 'industrial techno', 'techno sessions',
           'electronic music', 'groove techno', 'techno live', 'bounce techno', 'dark techno'
         ],
-        alternates: { canonical: `https://tallerzero.com/sessions/${session.id}` },
+        alternates: { canonical: `https://taller-zero.cl/sessions/${session.id}` },
         openGraph: {
             title: `${session.title} | Taller Zero`,
             description: `Live set RAW de ${session.title}. Featuring: ${artistNames}. Formato original desde Taller Zero.`,
