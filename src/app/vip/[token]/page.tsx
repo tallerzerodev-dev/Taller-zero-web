@@ -56,7 +56,7 @@ export default async function VipPage({ params }: { params: { token: string } })
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
-            <div className="absolute bottom-4 left-4 font-mono text-[10px] text-[#555] tracking-widest uppercase">/// REC 01</div>
+            <div className="absolute bottom-4 left-4 font-mono text-[10px] text-[#555] tracking-widest uppercase">{"/// REC 01"}</div>
           </div>
           
           <div className="p-8 md:p-16 border-b border-[#333] flex flex-col justify-center text-center md:text-left bg-[#050505]">
@@ -76,17 +76,17 @@ export default async function VipPage({ params }: { params: { token: string } })
           <div className="p-8 md:p-16 border-b md:border-b-0 md:border-r border-[#333] flex flex-col justify-center order-2 md:order-1 bg-[#020202]">
             <div className="space-y-12">
               <div className="border-l-2 border-[#333] pl-6">
-                <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-4 uppercase">/// LOCACIÓN SECRETA</h3>
+                <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-4 uppercase">{"/// LOCACIÓN SECRETA"}</h3>
                 <p className="font-mono text-sm md:text-base leading-relaxed text-white uppercase tracking-wider">{vipContent.location}</p>
               </div>
               
               <div className="border-l-2 border-[#333] pl-6">
-                <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-4 uppercase">/// LINEUP</h3>
+                <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-4 uppercase">{"/// LINEUP"}</h3>
                 <p className="font-mono text-base md:text-lg leading-relaxed text-[#ddd] whitespace-pre-line uppercase font-bold tracking-tight">{vipContent.lineup}</p>
               </div>
               
               <div className="border-l-2 border-[#333] pl-6">
-                <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-4 uppercase">/// REGLAS DE ACCESO</h3>
+                <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-4 uppercase">{"/// REGLAS DE ACCESO"}</h3>
                 <p className="font-mono text-[10px] md:text-xs leading-relaxed text-[#888] whitespace-pre-line uppercase tracking-widest">{vipContent.rules}</p>
               </div>
             </div>
@@ -98,7 +98,7 @@ export default async function VipPage({ params }: { params: { token: string } })
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
-            <div className="absolute top-4 right-4 font-mono text-[10px] text-[#555] tracking-widest uppercase">/// REC 02</div>
+            <div className="absolute top-4 right-4 font-mono text-[10px] text-[#555] tracking-widest uppercase">{"/// REC 02"}</div>
           </div>
         </div>
 

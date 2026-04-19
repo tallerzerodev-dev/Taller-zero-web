@@ -141,17 +141,17 @@ export function PreviewVip({ content }: { content: any }) {
         <div className="p-8 border-r border-[#333] flex flex-col justify-center order-2 md:order-1">
           <div className="space-y-8">
             <div className="border-l-2 border-[#333] pl-4">
-              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">/// LOCACIÓN SECRETA</h3>
+              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">{"/// LOCACIÓN SECRETA"}</h3>
               <p className="font-mono text-xs leading-relaxed text-white uppercase tracking-wider">{content.location || 'UBICACIÓN'}</p>
             </div>
             
             <div className="border-l-2 border-[#333] pl-4">
-              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">/// LINEUP</h3>
+              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">{"/// LINEUP"}</h3>
               <p className="font-mono text-xs leading-relaxed text-[#ddd] whitespace-pre-line uppercase font-bold">{content.lineup || 'LINEUP A REVELAR'}</p>
             </div>
             
             <div className="border-l-2 border-[#333] pl-4">
-              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">/// REGLAS DE ACCESO</h3>
+              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">{"/// REGLAS DE ACCESO"}</h3>
               <p className="font-mono text-[10px] leading-relaxed text-[#888] whitespace-pre-line">{content.rules || 'NORMAS DEL EVENTO'}</p>
             </div>
           </div>
