@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 
 export default function AdminDashboardPage() {
@@ -98,6 +98,22 @@ export default function AdminDashboardPage() {
               <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-white">Editar Galería</h2>
               <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Sube fotos, asigna sesiones y organiza el mosaico visual.</p>
               <span className="text-white font-mono text-xs uppercase tracking-widest border-b border-white pb-1 w-fit">Gestor →</span>
+            </FadeIn>
+          </Link>
+
+          <Link href="/admin/dashboard/editor?page=vip" className="block">
+            <FadeIn className="bg-[#1a0000] border border-red-900 p-8 hover:border-red-500 transition-colors group cursor-pointer flex flex-col h-full shadow-[0_0_15px_rgba(220,38,38,0.1)]">
+              <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-red-500">Página VIP</h2>
+              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Edita el contenido de la página secreta: Fecha, Lineup, Locación y Reglas de la fiesta.</p>
+              <span className="text-red-500 font-mono text-xs uppercase tracking-widest border-b border-red-500 pb-1 w-fit">Abrir Editor →</span>
+            </FadeIn>
+          </Link>
+
+          <Link href="/admin/dashboard/invitations" className="block xl:col-span-2">
+            <FadeIn className="bg-[#001a0a] border border-green-900 p-8 hover:border-[#4ade80] transition-colors group cursor-pointer flex flex-col h-full shadow-[0_0_15px_rgba(74,222,128,0.1)]">
+              <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-[#4ade80]">Enviar Invitaciones</h2>
+              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Genera accesos VIP con códigos QR únicos y envíalos por correo a los asistentes especiales.</p>
+              <span className="text-[#4ade80] font-mono text-xs uppercase tracking-widest border-b border-[#4ade80] pb-1 w-fit">Ir al Sistema →</span>
             </FadeIn>
           </Link>
 

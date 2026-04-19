@@ -109,3 +109,70 @@ export function PreviewSession({ content }: { content: any }) {
     </div>
   )
 }
+
+export function PreviewVip({ content }: { content: any }) {
+  return (
+    <div className="w-full max-w-[800px] mx-auto border border-[#333] bg-black shadow-2xl relative pointer-events-none text-white">
+      
+      {/* SECCIÓN 1: BIENVENIDA (Grid 50/50: FOTO - TEXTO) */}
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="aspect-square bg-[#111] border-r border-b border-[#333] relative flex items-center justify-center overflow-hidden">
+          {content.welcomeImage ? (
+            <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80" style={{ backgroundImage: `url(${content.welcomeImage})` }}></div>
+          ) : (
+            <span className="font-mono text-xs text-[#555]">[IMAGEN DE BIENVENIDA]</span>
+          )}
+        </div>
+        
+        <div className="p-8 border-b border-[#333] flex flex-col justify-center text-center md:text-left">
+          <span className="text-[10px] text-[#555] font-mono tracking-[0.3em] uppercase mb-4">TALLER ZERO EXCLUSIVO</span>
+          <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-tighter mb-4">{content.title || 'TÍTULO DEL EVENTO'}</h1>
+          <p className="font-mono text-[#ffffff] uppercase tracking-widest text-xs font-bold border border-white px-3 py-1 inline-block self-center md:self-start mb-6">
+            {content.dateText || 'FECHA DEL EVENTO'}
+          </p>
+          <p className="font-mono text-xs leading-relaxed text-[#ddd] whitespace-pre-line">
+            {content.welcomeText || 'Párrafo de bienvenida y valores...'}
+          </p>
+        </div>
+      </div>
+
+      {/* SECCIÓN 2: INFORMACIÓN (Grid 50/50: TEXTOS - FOTO) */}
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="p-8 border-r border-[#333] flex flex-col justify-center order-2 md:order-1">
+          <div className="space-y-8">
+            <div className="border-l-2 border-[#333] pl-4">
+              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">/// LOCACIÓN SECRETA</h3>
+              <p className="font-mono text-xs leading-relaxed text-white uppercase tracking-wider">{content.location || 'UBICACIÓN'}</p>
+            </div>
+            
+            <div className="border-l-2 border-[#333] pl-4">
+              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">/// LINEUP</h3>
+              <p className="font-mono text-xs leading-relaxed text-[#ddd] whitespace-pre-line uppercase font-bold">{content.lineup || 'LINEUP A REVELAR'}</p>
+            </div>
+            
+            <div className="border-l-2 border-[#333] pl-4">
+              <h3 className="font-mono text-[10px] tracking-widest text-[#555] mb-2 uppercase">/// REGLAS DE ACCESO</h3>
+              <p className="font-mono text-[10px] leading-relaxed text-[#888] whitespace-pre-line">{content.rules || 'NORMAS DEL EVENTO'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="aspect-square bg-[#111] border-b border-[#333] relative flex items-center justify-center overflow-hidden order-1 md:order-2">
+          {content.infoImage ? (
+            <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80" style={{ backgroundImage: `url(${content.infoImage})` }}></div>
+          ) : (
+            <span className="font-mono text-xs text-[#555]">[IMAGEN SECUNDARIA]</span>
+          )}
+        </div>
+      </div>
+
+      {/* SECCIÓN 3: DESPEDIDA (ANCHO COMPLETO) */}
+      <div className="p-12 border-t border-[#333] text-center bg-[#050505]">
+        <p className="font-mono text-sm leading-relaxed text-[#888] whitespace-pre-line max-w-lg mx-auto uppercase tracking-widest">
+          {content.farewellText || 'TEXTO FINAL DE DESPEDIDA / NO FOTOS. NO FLASH.'}
+        </p>
+      </div>
+
+    </div>
+  )
+}

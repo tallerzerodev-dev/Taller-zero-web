@@ -163,3 +163,36 @@ model Subscriber {
   email     String   @unique
   createdAt DateTime @default(now())
 }
+
+// ==========================================
+// 5. VIP INVITATIONS & EVENTS
+// ==========================================
+
+model VipEventContent {
+  id              String   @id @default("vip-singleton")
+  title           String?
+  dateText        String?
+  location        String?
+  rules           String?  @db.Text
+  lineup          String?  @db.Text
+  
+  // Nuevos campos para layout asimétrico
+  welcomeImage    String?
+  welcomeText     String?  @db.Text
+  infoImage       String?
+  farewellText    String?  @db.Text
+
+  updatedAt       DateTime @updatedAt
+}
+
+model Invitation {
+  id          String   @id @default(cuid())
+  guestName   String
+  guestEmail  String
+  token       String   @unique
+  isScanned   Boolean  @default(false)
+  scannedAt   DateTime?
+  eventDate   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

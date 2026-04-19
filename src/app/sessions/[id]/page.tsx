@@ -22,16 +22,16 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         title: `${session.title} | Taller Zero`,
         description: `Live set RAW de ${session.title}. Featuring: ${artistNames}. Sesión de techno, hypnotic techno y música underground desde Chile grabada en formato RAW por Taller Zero.`,
         keywords: [
-          ...session.artists.map((a: any) => a.name),
-          session.title,
-          // Nacional
-          'techno Chile', 'dj set Chile', 'sesiones techno Chile', 'djs chilenos',
-          'hardgroove Chile', 'hypnotic techno Chile', 'underground Chile', 'Taller Zero',
-          'sets en vivo Chile', 'música electrónica Chile', 'artistas locales techno',
-          // Internacional
-          'techno', 'dj set', 'live set techno', 'underground techno', 'hypnotic techno',
-          'hardgroove', 'hardhouse', 'raw techno', 'industrial techno', 'techno sessions',
-          'electronic music', 'groove techno', 'techno live', 'bounce techno', 'dark techno'
+            ...session.artists.map((a: any) => a.name),
+            session.title,
+            // Nacional
+            'techno Chile', 'dj set Chile', 'sesiones techno Chile', 'djs chilenos',
+            'hardgroove Chile', 'hypnotic techno Chile', 'underground Chile', 'Taller Zero',
+            'sets en vivo Chile', 'música electrónica Chile', 'artistas locales techno',
+            // Internacional
+            'techno', 'dj set', 'live set techno', 'underground techno', 'hypnotic techno',
+            'hardgroove', 'hardhouse', 'raw techno', 'industrial techno', 'techno sessions',
+            'electronic music', 'groove techno', 'techno live', 'bounce techno', 'dark techno'
         ],
         alternates: { canonical: `https://taller-zero.cl/sessions/${session.id}` },
         openGraph: {
@@ -124,7 +124,7 @@ export default async function SessionPage({ params }: { params: { id: string } }
                             <FadeIn key={artist.id}>
                                 <Link href={`/sessions/${session.id}/artist/${artist.id}`} className="group block w-full focus:outline-none active:scale-[0.98] transition-transform duration-300 ease-out h-full">
                                     <div className="w-full h-[500px] md:h-[600px] relative bg-black border border-[#333] group-hover:border-[#777] transition-all duration-700 overflow-hidden rounded-sm">
-                                        
+
                                         {/* BACKGROUND IMAGE */}
                                         <div className="absolute inset-0 z-0 transition-transform duration-[2000ms] group-hover:scale-105">
                                             {artist.photo ? (
@@ -133,7 +133,7 @@ export default async function SessionPage({ params }: { params: { id: string } }
                                                 <div className="absolute inset-0 flex items-center justify-center bg-[#111]"><span className="font-mono text-xs uppercase text-[#555]">No Photo</span></div>
                                             )}
                                         </div>
-                                        
+
                                         {/* GRADIENT OVERLAYS */}
                                         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/90 z-10"></div>
                                         <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none"></div>

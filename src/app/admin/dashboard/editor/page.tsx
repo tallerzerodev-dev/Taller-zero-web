@@ -4,14 +4,15 @@ import { useSearchParams } from 'next/navigation'
 import { useState, useEffect, Suspense } from 'react'
 import { Save, Eye, LayoutTemplate, AlertTriangle, PlayCircle } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
-import { PreviewHome, PreviewAbout, PreviewSession } from './components/PreviewMockups'
+import { PreviewHome, PreviewAbout, PreviewSession, PreviewVip } from './components/PreviewMockups'
 
 
 // Usar 'sessions' como clave y valor de page para backend
 const defaultEditorData: Record<string, any> = {
   home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '' },
-  about: { title: '', content: '', showMarquée: true, coverImage: '' },
-  sessions: { title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '', spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '', artists: [] }
+  about: { title: '', content: '', showMarquee: true, coverImage: '' },
+  sessions: { title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '', spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '', artists: [] },
+  vip: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' }
 };
 
 function EditorContent() {
@@ -205,15 +206,17 @@ function EditorContent() {
             }
           }
         }
+      } else if (page === 'vip') {
+        if (finalContent.welcomeImage) finalContent.welcomeImage = await uploadIfBlob(finalContent.welcomeImage);
+        if (finalContent.infoImage) finalContent.infoImage = await uploadIfBlob(finalContent.infoImage);
       }
-
       setSaveStatus("GUARDANDO EN POSTGRESQL...");
       const action = searchParams.get('action') || 'edit';
 
       const response = await fetch('/api/admin/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page: 'sessions', action, content: finalContent })
+        body: JSON.stringify({ page: page, action, content: finalContent })
       });
 
       if (response.ok) {
@@ -419,7 +422,7 @@ function EditorContent() {
             <div className="space-y-12">
               <div className="space-y-6">
                 <h3 className="text-white border-b border-[#333] pb-2 text-xs">1. MANIFIESTO</h3>
-                <input type="text" value={content.title || ''} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="TÃ­tulo" />
+                <input type="text" value={content.title || ''} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Título" />
                 <textarea rows={10} value={content.content || ''} onChange={(e) => handleChange('content', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Contenido del Manifiesto" />
               </div>
               <div className="space-y-6">
@@ -428,6 +431,37 @@ function EditorContent() {
                   <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Subir Imagen de Portada Info</label>
                   <input type="file" accept="image/*" className="w-full bg-black border border-[#333] p-2 text-white text-xs file:mr-4 file:bg-white file:text-black file:border-0 file:px-4 file:py-2 file:text-xs file:font-mono file:uppercase file:cursor-pointer hover:file:bg-[#ccc]" onChange={(e) => handleFileWithLimit(e.target.files?.[0], url => handleChange('coverImage', url), e.target)} />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {page === 'vip' && (
+            <div className="space-y-12">
+              <div className="space-y-6">
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs">PÁGINA VIP SECRETA</h3>
+                <p className="text-[10px] text-[#888] mb-4">Esta información solo será visible para quienes escaneen el QR de su invitación o entren con su enlace único.</p>
+                
+                <input type="text" value={content.title || ''} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Título del Evento (Ej: CÁPSULA 002 EXCLUSIVO)" />
+                <input type="text" value={content.dateText || ''} onChange={(e) => handleChange('dateText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Fecha y Hora (Ej: JUEVES 23 - 22:00 HRS)" />
+                
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 1: BIENVENIDA (IZQ FOTO, DER TEXTO)</h3>
+                <div className="mb-4">
+                  <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Imagen de Bienvenida (Cuadrada ideal)</label>
+                  <input type="file" accept="image/*" className="w-full bg-black border border-[#333] p-2 text-white text-xs file:mr-4 file:bg-white file:text-black file:border-0 file:px-4 file:py-2 file:text-xs file:font-mono file:uppercase file:cursor-pointer hover:file:bg-[#ccc]" onChange={(e) => handleFileWithLimit(e.target.files?.[0], url => handleChange('welcomeImage', url), e.target)} />
+                </div>
+                <textarea rows={4} value={content.welcomeText || ''} onChange={(e) => handleChange('welcomeText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Texto de Bienvenida / Valores..." />
+
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 2: INFORMACIÓN (IZQ TEXTOS, DER FOTO)</h3>
+                <div className="mb-4">
+                  <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Imagen de Información (Cuadrada ideal)</label>
+                  <input type="file" accept="image/*" className="w-full bg-black border border-[#333] p-2 text-white text-xs file:mr-4 file:bg-white file:text-black file:border-0 file:px-4 file:py-2 file:text-xs file:font-mono file:uppercase file:cursor-pointer hover:file:bg-[#ccc]" onChange={(e) => handleFileWithLimit(e.target.files?.[0], url => handleChange('infoImage', url), e.target)} />
+                </div>
+                <input type="text" value={content.location || ''} onChange={(e) => handleChange('location', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Locación (Ej: SECRET LOCATION - PROVIDENCIA)" />
+                <textarea rows={4} value={content.lineup || ''} onChange={(e) => handleChange('lineup', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed mb-2" placeholder="Lineup del evento..." />
+                <textarea rows={4} value={content.rules || ''} onChange={(e) => handleChange('rules', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Ej: No fotos, código de vestimenta industrial dark..." />
+
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 3: DESPEDIDA (ANCHO COMPLETO)</h3>
+                <textarea rows={4} value={content.farewellText || ''} onChange={(e) => handleChange('farewellText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Mensaje de despedida..." />
               </div>
             </div>
           )}
@@ -458,6 +492,7 @@ function EditorContent() {
           {page === 'home' && <PreviewHome content={content} />}
           {page === 'about' && <PreviewAbout content={content} />}
           {page === 'sessions' && <PreviewSession content={content} />}
+          {page === 'vip' && <PreviewVip content={content} />}
         </div>
       </div>
     </div>

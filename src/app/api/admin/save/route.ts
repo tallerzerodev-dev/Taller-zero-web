@@ -74,6 +74,18 @@ const SessionContentSchema = z.object({
   artists: z.array(ArtistSchema).nullish().transform(v => v || []),
 });
 
+const VipEventContentSchema = z.object({
+  title: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  dateText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  location: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  rules: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  lineup: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  welcomeImage: z.string().nullish().transform(v => v || ''),
+  welcomeText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  infoImage: z.string().nullish().transform(v => v || ''),
+  farewellText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+});
+
 const SaveActionSchema = z.discriminatedUnion('page', [
   z.object({
     page: z.literal('home'),
@@ -89,6 +101,11 @@ const SaveActionSchema = z.discriminatedUnion('page', [
     page: z.literal('sessions'),
     action: z.string().optional(),
     content: SessionContentSchema,
+  }),
+  z.object({
+    page: z.literal('vip'),
+    action: z.string().optional(),
+    content: VipEventContentSchema,
   }),
 ]);
 
@@ -268,6 +285,45 @@ export async function POST(request: Request) {
         console.log('ADMIN/SAVE: SESION editada guardada:', JSON.stringify(updatedSession));
         return NextResponse.json({ success: true, data: updatedSession });
       }
+    }
+
+
+    // 4. Guardar VipEventContent
+    if (page === 'vip') {
+      console.log('ADMIN/SAVE: Guardando VIP', JSON.stringify(content));
+      const existing = await prisma.vipEventContent.findUnique({ where: { id: 'vip-singleton' } });
+      if (existing) {
+        if (existing.welcomeImage && existing.welcomeImage !== content.welcomeImage) await destroyCloudinaryFile(existing.welcomeImage);
+        if (existing.infoImage && existing.infoImage !== content.infoImage) await destroyCloudinaryFile(existing.infoImage);
+      }
+      const saved = await prisma.vipEventContent.upsert({
+        where: { id: 'vip-singleton' },
+        update: {
+          title: content.title,
+          dateText: content.dateText,
+          location: content.location,
+          rules: content.rules,
+          lineup: content.lineup,
+          welcomeImage: content.welcomeImage,
+          welcomeText: content.welcomeText,
+          infoImage: content.infoImage,
+          farewellText: content.farewellText,
+        },
+        create: {
+          id: 'vip-singleton',
+          title: content.title || '',
+          dateText: content.dateText || '',
+          location: content.location || '',
+          rules: content.rules || '',
+          lineup: content.lineup || '',
+          welcomeImage: content.welcomeImage || '',
+          welcomeText: content.welcomeText || '',
+          infoImage: content.infoImage || '',
+          farewellText: content.farewellText || '',
+        },
+      });
+      console.log('ADMIN/SAVE: VIP guardado:', JSON.stringify(saved));
+      return NextResponse.json({ success: true, data: saved });
     }
 
     console.log('ADMIN/SAVE: Página no válida:', page);
