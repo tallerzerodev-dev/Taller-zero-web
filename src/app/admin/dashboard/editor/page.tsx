@@ -12,7 +12,9 @@ const defaultEditorData: Record<string, any> = {
   home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '' },
   about: { title: '', content: '', showMarquee: true, coverImage: '' },
   sessions: { title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '', spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '', artists: [] },
-  vip: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' }
+  vip: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' },
+  winner: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' },
+  email: { subjectGuest: '', titleGuest: '', messageGuest: '', subjectWinner: '', titleWinner: '', messageWinner: '', footer: '' }
 };
 
 function EditorContent() {
@@ -23,7 +25,7 @@ function EditorContent() {
 
   const [isPreviewMode, setIsPreviewMode] = useState(false)
   const [content, setContent] = useState(defaultEditorData[page] || defaultEditorData.home)
-  const [storeEnabled, setStoreEnabled] = useState(content.storeEnabled || false)
+  const [storeEnabled, setStoreEnabled] = useState(content?.storeEnabled || false)
   const [isDirty, setIsDirty] = useState(false)
 
   const [isSaving, setIsSaving] = useState(false)
@@ -206,7 +208,7 @@ function EditorContent() {
             }
           }
         }
-      } else if (page === 'vip') {
+      } else if (page === 'vip' || page === 'winner') {
         if (finalContent.welcomeImage) finalContent.welcomeImage = await uploadIfBlob(finalContent.welcomeImage);
         if (finalContent.infoImage) finalContent.infoImage = await uploadIfBlob(finalContent.infoImage);
       }
@@ -465,6 +467,56 @@ function EditorContent() {
               </div>
             </div>
           )}
+
+          {page === 'winner' && (
+            <div className="space-y-12">
+              <div className="space-y-6">
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs">PÁGINA GANADORES SECRETA</h3>
+                <p className="text-[10px] text-[#888] mb-4">Esta información solo será visible para quienes escaneen el QR de su invitación de concurso o entren con su enlace único.</p>
+                
+                <input type="text" value={content.title || ''} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Título del Evento (Ej: GANADOR CÁPSULA 002)" />
+                <input type="text" value={content.dateText || ''} onChange={(e) => handleChange('dateText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Fecha y Hora (Ej: JUEVES 23 - 22:00 HRS)" />
+                
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 1: BIENVENIDA (IZQ FOTO, DER TEXTO)</h3>
+                <div className="mb-4">
+                  <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Imagen de Bienvenida (Cuadrada ideal)</label>
+                  <input type="file" accept="image/*" className="w-full bg-black border border-[#333] p-2 text-white text-xs file:mr-4 file:bg-white file:text-black file:border-0 file:px-4 file:py-2 file:text-xs file:font-mono file:uppercase file:cursor-pointer hover:file:bg-[#ccc]" onChange={(e) => handleFileWithLimit(e.target.files?.[0], url => handleChange('welcomeImage', url), e.target)} />
+                </div>
+                <textarea rows={4} value={content.welcomeText || ''} onChange={(e) => handleChange('welcomeText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Texto de Bienvenida / Felicitaciones..." />
+
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 2: INFORMACIÓN (IZQ TEXTOS, DER FOTO)</h3>
+                <div className="mb-4">
+                  <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Imagen de Información (Cuadrada ideal)</label>
+                  <input type="file" accept="image/*" className="w-full bg-black border border-[#333] p-2 text-white text-xs file:mr-4 file:bg-white file:text-black file:border-0 file:px-4 file:py-2 file:text-xs file:font-mono file:uppercase file:cursor-pointer hover:file:bg-[#ccc]" onChange={(e) => handleFileWithLimit(e.target.files?.[0], url => handleChange('infoImage', url), e.target)} />
+                </div>
+                <input type="text" value={content.location || ''} onChange={(e) => handleChange('location', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Locación (Ej: SECRET LOCATION - PROVIDENCIA)" />
+                <textarea rows={4} value={content.lineup || ''} onChange={(e) => handleChange('lineup', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed mb-2" placeholder="Lineup del evento..." />
+                <textarea rows={4} value={content.rules || ''} onChange={(e) => handleChange('rules', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Ej: Instrucciones de acceso para ganadores..." />
+
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 3: DESPEDIDA (ANCHO COMPLETO)</h3>
+                <textarea rows={4} value={content.farewellText || ''} onChange={(e) => handleChange('farewellText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Mensaje de despedida..." />
+              </div>
+            </div>
+          )}
+
+          {page === 'email' && (
+            <div className="space-y-12">
+              <div className="space-y-6">
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs">CORREO PARA INVITADOS VIP</h3>
+                <input type="text" value={content.subjectGuest || ''} onChange={(e) => handleChange('subjectGuest', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Asunto del Correo (Ej: TALLER ZERO - TU ACCESO EXCLUSIVO)" />
+                <input type="text" value={content.titleGuest || ''} onChange={(e) => handleChange('titleGuest', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Título Interno (Ej: COMUNICADO DE ACCESO)" />
+                <textarea rows={3} value={content.messageGuest || ''} onChange={(e) => handleChange('messageGuest', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Mensaje antes del nombre (Ej: IDENTIDAD CONFIRMADA)" />
+
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">CORREO PARA GANADORES DE CONCURSO</h3>
+                <input type="text" value={content.subjectWinner || ''} onChange={(e) => handleChange('subjectWinner', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Asunto del Correo (Ej: TALLER ZERO - GANADOR DEL CONCURSO)" />
+                <input type="text" value={content.titleWinner || ''} onChange={(e) => handleChange('titleWinner', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Título Interno (Ej: ACCESO OTORGADO)" />
+                <textarea rows={3} value={content.messageWinner || ''} onChange={(e) => handleChange('messageWinner', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Mensaje antes del nombre (Ej: FELICITACIONES)" />
+
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">PIE DE PÁGINA COMÚN</h3>
+                <textarea rows={4} value={content.footer || ''} onChange={(e) => handleChange('footer', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] leading-relaxed" placeholder="Texto final en todos los correos (Ej: DRESSCODE: BLACK...)" />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-6 border-t border-[#222] bg-black">
@@ -493,6 +545,15 @@ function EditorContent() {
           {page === 'about' && <PreviewAbout content={content} />}
           {page === 'sessions' && <PreviewSession content={content} />}
           {page === 'vip' && <PreviewVip content={content} />}
+          {page === 'winner' && <PreviewVip content={content} />}
+          {page === 'email' && (
+            <div className="flex items-center justify-center h-full text-[#888] font-mono text-xs uppercase tracking-widest border-2 border-dashed border-[#222] p-8 text-center">
+              <div>
+                <p className="mb-2">La previsualización de correo no está disponible aquí.</p>
+                <p>Genera una invitación desde el panel para probarlo en tu bandeja de entrada.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -61,9 +61,16 @@ export default async function ScanPage({ params }: { params: { token: string } }
         <CheckCircle2 className="w-24 h-24 text-[#4ade80] mx-auto mb-6" />
         <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-tighter text-white mb-4">ACCESO VÁLIDO</h1>
         <div className="border-t border-[#4ade80]/30 pt-6 mt-6">
-           <p className="text-[#4ade80] font-mono text-xs uppercase tracking-widest mb-2">IDENTIDAD DEL INVITADO:</p>
+           <p className="text-[#4ade80] font-mono text-xs uppercase tracking-widest mb-2">IDENTIDAD DEL {invitation.type === 'WINNER' ? 'GANADOR' : 'INVITADO'}:</p>
            <p className="text-white font-bold text-3xl md:text-4xl uppercase tracking-tighter">{invitation.guestName}</p>
            <p className="text-[#888] font-mono text-xs mt-2">{invitation.guestEmail}</p>
+           <div className="mt-4 inline-block">
+             {invitation.type === 'WINNER' ? (
+               <span className="text-yellow-500 font-mono text-[10px] tracking-widest bg-[#1a1000] px-3 py-1 border border-yellow-900">GANADOR DE CONCURSO</span>
+             ) : (
+               <span className="text-white font-mono text-[10px] tracking-widest bg-[#222] px-3 py-1 border border-[#333]">INVITADO VIP</span>
+             )}
+           </div>
         </div>
         <p className="mt-8 text-[#4ade80]/60 font-mono text-[10px] uppercase tracking-widest">
           La base de datos ha marcado esta entrada como usada.

@@ -107,6 +107,24 @@ const SaveActionSchema = z.discriminatedUnion('page', [
     action: z.string().optional(),
     content: VipEventContentSchema,
   }),
+  z.object({
+    page: z.literal('winner'),
+    action: z.string().optional(),
+    content: VipEventContentSchema, // Usa el mismo esquema porque los campos son idénticos
+  }),
+  z.object({
+    page: z.literal('email'),
+    action: z.string().optional(),
+    content: z.object({
+      subjectGuest: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+      titleGuest: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+      messageGuest: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+      subjectWinner: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+      titleWinner: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+      messageWinner: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+      footer: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+    }),
+  }),
 ]);
 
 export async function POST(request: Request) {
@@ -323,6 +341,73 @@ export async function POST(request: Request) {
         },
       });
       console.log('ADMIN/SAVE: VIP guardado:', JSON.stringify(saved));
+      return NextResponse.json({ success: true, data: saved });
+    }
+
+    // 5. Guardar WinnerEventContent
+    if (page === 'winner') {
+      console.log('ADMIN/SAVE: Guardando WINNER', JSON.stringify(content));
+      const existing = await prisma.winnerEventContent.findUnique({ where: { id: 'winner-singleton' } });
+      if (existing) {
+        if (existing.welcomeImage && existing.welcomeImage !== content.welcomeImage) await destroyCloudinaryFile(existing.welcomeImage);
+        if (existing.infoImage && existing.infoImage !== content.infoImage) await destroyCloudinaryFile(existing.infoImage);
+      }
+      const saved = await prisma.winnerEventContent.upsert({
+        where: { id: 'winner-singleton' },
+        update: {
+          title: content.title,
+          dateText: content.dateText,
+          location: content.location,
+          rules: content.rules,
+          lineup: content.lineup,
+          welcomeImage: content.welcomeImage,
+          welcomeText: content.welcomeText,
+          infoImage: content.infoImage,
+          farewellText: content.farewellText,
+        },
+        create: {
+          id: 'winner-singleton',
+          title: content.title || '',
+          dateText: content.dateText || '',
+          location: content.location || '',
+          rules: content.rules || '',
+          lineup: content.lineup || '',
+          welcomeImage: content.welcomeImage || '',
+          welcomeText: content.welcomeText || '',
+          infoImage: content.infoImage || '',
+          farewellText: content.farewellText || '',
+        },
+      });
+      console.log('ADMIN/SAVE: WINNER guardado:', JSON.stringify(saved));
+      return NextResponse.json({ success: true, data: saved });
+    }
+
+    // 6. Guardar EmailTemplateContent
+    if (page === 'email') {
+      console.log('ADMIN/SAVE: Guardando EMAIL', JSON.stringify(content));
+      const saved = await prisma.emailTemplateContent.upsert({
+        where: { id: 'email-singleton' },
+        update: {
+          subjectGuest: content.subjectGuest,
+          titleGuest: content.titleGuest,
+          messageGuest: content.messageGuest,
+          subjectWinner: content.subjectWinner,
+          titleWinner: content.titleWinner,
+          messageWinner: content.messageWinner,
+          footer: content.footer,
+        },
+        create: {
+          id: 'email-singleton',
+          subjectGuest: content.subjectGuest || '',
+          titleGuest: content.titleGuest || '',
+          messageGuest: content.messageGuest || '',
+          subjectWinner: content.subjectWinner || '',
+          titleWinner: content.titleWinner || '',
+          messageWinner: content.messageWinner || '',
+          footer: content.footer || '',
+        },
+      });
+      console.log('ADMIN/SAVE: EMAIL guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 

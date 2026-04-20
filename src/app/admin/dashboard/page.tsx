@@ -109,10 +109,26 @@ export default function AdminDashboardPage() {
             </FadeIn>
           </Link>
 
-          <Link href="/admin/dashboard/invitations" className="block xl:col-span-2">
+          <Link href="/admin/dashboard/editor?page=winner" className="block">
+            <FadeIn className="bg-[#1a1000] border border-yellow-900 p-8 hover:border-yellow-500 transition-colors group cursor-pointer flex flex-col h-full shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+              <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-yellow-500">Página Ganadores</h2>
+              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Edita el contenido de la página secreta para ganadores del concurso (Lineup, Locación).</p>
+              <span className="text-yellow-500 font-mono text-xs uppercase tracking-widest border-b border-yellow-500 pb-1 w-fit">Abrir Editor →</span>
+            </FadeIn>
+          </Link>
+
+          <Link href="/admin/dashboard/editor?page=email" className="block xl:col-span-2">
+            <FadeIn className="bg-[#00101a] border border-blue-900 p-8 hover:border-blue-500 transition-colors group cursor-pointer flex flex-col h-full shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+              <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-blue-500">Plantillas Correos</h2>
+              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Edita los asuntos, títulos y mensajes de los correos que reciben tanto VIPs como Ganadores.</p>
+              <span className="text-blue-500 font-mono text-xs uppercase tracking-widest border-b border-blue-500 pb-1 w-fit">Abrir Editor →</span>
+            </FadeIn>
+          </Link>
+
+          <Link href="/admin/dashboard/invitations" className="block xl:col-span-4">
             <FadeIn className="bg-[#001a0a] border border-green-900 p-8 hover:border-[#4ade80] transition-colors group cursor-pointer flex flex-col h-full shadow-[0_0_15px_rgba(74,222,128,0.1)]">
               <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-[#4ade80]">Enviar Invitaciones</h2>
-              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Genera accesos VIP con códigos QR únicos y envíalos por correo a los asistentes especiales.</p>
+              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Genera accesos masivos VIP o de Concurso con códigos QR únicos y envíalos por correo.</p>
               <span className="text-[#4ade80] font-mono text-xs uppercase tracking-widest border-b border-[#4ade80] pb-1 w-fit">Ir al Sistema →</span>
             </FadeIn>
           </Link>
