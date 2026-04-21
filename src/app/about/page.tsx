@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { FadeIn } from '@/components/ui/Animations'
 import Image from 'next/image'
 
+import { prisma } from '@/lib/prisma'
+
 export const metadata: Metadata = {
   title: 'The Vision | Quiénes Somos',
   description: 'Taller Zero: plataforma de música electrónica underground desde Chile. Techno, hypnotic techno, hardgroove y más. Sesiones en vivo en formato RAW desde locaciones industriales.',
@@ -13,7 +15,24 @@ export const metadata: Metadata = {
   ],
 }
 
-export default function AboutPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function AboutPage() {
+    let aboutContent = await prisma.aboutContent.findUnique({
+      where: { id: 'about-singleton' }
+    })
+
+    if (!aboutContent) {
+      aboutContent = {
+        id: 'about-singleton',
+        title: 'Taller Zero',
+        content: 'Nacimos de la necesidad de fusionar dos mundos que coexisten en paralelo: el trabajo manual/creativo y la música electrónica de vanguardia.\n\nConvertimos talleres, bodegas y espacios de manufactura reales en escenarios efímeros. Documentamos sets en crudo, sin filtros, capturando la energía industrial del entorno y la brutalidad del sonido.',
+        coverImage: 'https://images.unsplash.com/photo-1599423423926-b8b80b206412?q=80&w=2070&auto=format&fit=crop',
+        showMarquee: true,
+        updatedAt: new Date()
+      }
+    }
+
     return (
         <main className="flex-1 flex flex-col bg-black min-h-screen pt-24 pb-32">
 
@@ -33,7 +52,7 @@ export default function AboutPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                     <FadeIn delay={0.3} className="aspect-square bg-gray-900 border-4 border-gray-800 relative group overflow-hidden">
                         <Image
-                            src="https://images.unsplash.com/photo-1599423423926-b8b80b206412?q=80&w=2070&auto=format&fit=crop"
+                            src={aboutContent.coverImage || "https://images.unsplash.com/photo-1599423423926-b8b80b206412?q=80&w=2070&auto=format&fit=crop"}
                             alt="Taller Zero - Espacio industrial de música underground en Chile"
                             fill
                             className="object-cover mix-blend-luminosity grayscale group-hover:scale-105 transition-transform duration-1000"
@@ -43,17 +62,11 @@ export default function AboutPage() {
 
                     <FadeIn delay={0.5} y={40} className="flex flex-col gap-8">
                         <h2 className="text-3xl font-mono font-bold uppercase tracking-widest text-white">
-                            Taller Zero
+                            {aboutContent.title}
                         </h2>
-                        <div className="text-gray-400 font-sans text-lg md:text-xl leading-relaxed space-y-6">
+                        <div className="text-gray-400 font-sans text-lg md:text-xl leading-relaxed space-y-6 whitespace-pre-line">
                             <p>
-                                Nacimos de la necesidad de fusionar dos mundos que coexisten en paralelo: el trabajo manual/creativo y la música electrónica de vanguardia.
-                            </p>
-                            <p>
-                                Convertimos talleres, bodegas y espacios de manufactura reales en escenarios efímeros. Documentamos sets en crudo, sin filtros, capturando la energía industrial del entorno y la brutalidad del sonido.
-                            </p>
-                            <p className="pl-4 border-l-2 border-white text-white font-mono text-sm uppercase tracking-widest">
-                                "La estética del concreto. El ruido de las máquinas. El bombo a 140 BPM."
+                                {aboutContent.content}
                             </p>
                         </div>
                     </FadeIn>

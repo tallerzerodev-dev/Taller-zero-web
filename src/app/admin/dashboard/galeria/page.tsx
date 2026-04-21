@@ -159,9 +159,9 @@ export default function GaleriaAdminPage() {
                                             for (let i = 0; i < fileArray.length; i++) {
                                                 const f = fileArray[i];
                                                 setProgress({ current: i + 1, total: fileArray.length, failed: 0 }); // Usamos progress temporalmente para indicar compresión
-                                                if (f.type.startsWith('image/') && f.size > 8 * 1024 * 1024) {
+                                                if (f.type.startsWith('image/') && f.size > 3.5 * 1024 * 1024) {
                                                     try {
-                                                        const options = { maxSizeMB: 8, maxWidthOrHeight: 3000, useWebWorker: true };
+                                                        const options = { maxSizeMB: 3.5, maxWidthOrHeight: 2500, useWebWorker: true };
                                                         const compressed = await imageCompression(f, options);
                                                         processedFiles.push(compressed);
                                                     } catch (err) {
@@ -173,12 +173,12 @@ export default function GaleriaAdminPage() {
                                                 }
                                             }
 
-                                            const oversized = processedFiles.filter(f => f.size > 10485760);
+                                            const oversized = processedFiles.filter(f => f.size > 4.5 * 1024 * 1024);
                                             if (oversized.length > 0) {
-                                                alert(`❌ ${oversized.length} archivo(s) pesan más de 10 MB incluso después de intentar comprimirlos, por lo que serán ignorados. (Ej: ${oversized[0].name})`);
+                                                alert(`❌ ${oversized.length} archivo(s) pesan más de 4.5 MB incluso después de intentar comprimirlos, por lo que serán ignorados. Vercel prohíbe subidas de más de 4.5MB. (Ej: ${oversized[0].name})`);
                                             }
                                             
-                                            const validFiles = processedFiles.filter(f => f.size <= 10485760);
+                                            const validFiles = processedFiles.filter(f => f.size <= 4.5 * 1024 * 1024);
                                             setFiles(prev => [...prev, ...validFiles]);
                                             
                                             setUploading(false);
