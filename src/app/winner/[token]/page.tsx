@@ -57,7 +57,6 @@ export default async function WinnerPage({ params }: { params: { token: string }
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
-            <div className="absolute bottom-4 left-4 font-mono text-[10px] text-[#888] tracking-widest uppercase">{"/// WN 01"}</div>
           </div>
           
           <div className="p-8 md:p-16 border-b border-[#333] flex flex-col justify-center text-center md:text-left bg-[#050505]">
@@ -99,7 +98,6 @@ export default async function WinnerPage({ params }: { params: { token: string }
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
-            <div className="absolute top-4 right-4 font-mono text-[10px] text-[#888] tracking-widest uppercase">{"/// WN 02"}</div>
           </div>
         </div>
 
