@@ -53,7 +53,7 @@ export default async function WinnerPage({ params }: { params: { token: string }
         <div className="grid grid-cols-1 md:grid-cols-2">
           <div className="aspect-square bg-[#1a1000] border-b md:border-r border-[#333] relative flex items-center justify-center overflow-hidden">
             {winnerContent.welcomeImage ? (
-              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity sepia" style={{ backgroundImage: `url(${winnerContent.welcomeImage})` }}></div>
+              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity" style={{ backgroundImage: `url(${winnerContent.welcomeImage})` }}></div>
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
@@ -94,7 +94,7 @@ export default async function WinnerPage({ params }: { params: { token: string }
 
           <div className="aspect-square bg-[#1a1000] border-b md:border-b-0 border-[#333] relative flex items-center justify-center overflow-hidden order-1 md:order-2">
             {winnerContent.infoImage ? (
-              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity sepia" style={{ backgroundImage: `url(${winnerContent.infoImage})` }}></div>
+              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity" style={{ backgroundImage: `url(${winnerContent.infoImage})` }}></div>
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
