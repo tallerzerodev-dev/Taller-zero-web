@@ -7,7 +7,6 @@ import { Providers } from '@/components/Providers'
 import { prisma } from '@/lib/prisma'
 import './globals.css'
 export const dynamic = 'force-dynamic'
-import { Analytics } from "@vercel/analytics/react"
 
 
 const spaceMono = Space_Mono({
@@ -89,7 +88,6 @@ export default async function RootLayout({
           <Navbar storeEnabled={homeData?.storeEnabled || false} />
           <div className="pt-20 flex-1 flex flex-col z-10 w-full">
             {children}
-            <Analytics />
           </div>
           <Footer storeEnabled={homeData?.storeEnabled || false} />
         </Providers>
