@@ -51,13 +51,12 @@ export default async function WinnerPage({ params }: { params: { token: string }
 
         {/* SECCIÓN 1: BIENVENIDA (Grid 50/50: FOTO - TEXTO) */}
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="aspect-square bg-[#1a1000] border-b md:border-r border-[#333] relative flex items-center justify-center overflow-hidden">
+          <div className="aspect-square bg-[#111] border-b md:border-r border-[#333] relative flex items-center justify-center overflow-hidden">
             {winnerContent.welcomeImage ? (
-              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity sepia" style={{ backgroundImage: `url(${winnerContent.welcomeImage})` }}></div>
+              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity" style={{ backgroundImage: `url(${winnerContent.welcomeImage})` }}></div>
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
-            <div className="absolute bottom-4 left-4 font-mono text-[10px] text-[#888] tracking-widest uppercase">{"/// WN 01"}</div>
           </div>
           
           <div className="p-8 md:p-16 border-b border-[#333] flex flex-col justify-center text-center md:text-left bg-[#050505]">
@@ -93,13 +92,12 @@ export default async function WinnerPage({ params }: { params: { token: string }
             </div>
           </div>
 
-          <div className="aspect-square bg-[#1a1000] border-b md:border-b-0 border-[#333] relative flex items-center justify-center overflow-hidden order-1 md:order-2">
+          <div className="aspect-square bg-[#111] border-b md:border-b-0 border-[#333] relative flex items-center justify-center overflow-hidden order-1 md:order-2">
             {winnerContent.infoImage ? (
-              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity sepia" style={{ backgroundImage: `url(${winnerContent.infoImage})` }}></div>
+              <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80 mix-blend-luminosity" style={{ backgroundImage: `url(${winnerContent.infoImage})` }}></div>
             ) : (
               <div className="absolute inset-0 bg-[#111]"></div>
             )}
-            <div className="absolute top-4 right-4 font-mono text-[10px] text-[#888] tracking-widest uppercase">{"/// WN 02"}</div>
           </div>
         </div>
 
@@ -113,7 +111,7 @@ export default async function WinnerPage({ params }: { params: { token: string }
              <p className="font-mono text-[10px] text-[#555] text-center max-w-md uppercase tracking-widest mb-8">
                ESTA ES UNA PÁGINA PRIVADA E INTRANSFERIBLE. TU CÓDIGO QR DE ACCESO ÚNICO SE ENCUENTRA EN TU CORREO. NO COMPARTAS ESTE ENLACE O TU ENTRADA SERÁ ANULADA.
              </p>
-             <Link href="/" className="font-mono text-[10px] uppercase tracking-[0.3em] border border-[#333] text-[#888] hover:bg-white hover:text-black hover:border-white transition-colors px-6 py-3">
+             <Link href="https://taller-zero.cl" className="font-mono text-[10px] uppercase tracking-[0.3em] border border-[#333] text-[#888] hover:bg-white hover:text-black hover:border-white transition-colors px-6 py-3">
                VOLVER A LA MATRIX
              </Link>
            </div>

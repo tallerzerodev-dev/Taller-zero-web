@@ -46,13 +46,13 @@ export function Footer({ storeEnabled = false }: { storeEnabled?: boolean }) {
                 {/* Social */}
                 <div className="flex flex-col gap-4 font-mono uppercase text-sm">
                     <h4 className="text-gray-500 mb-2">Conectar</h4>
-                    <a href="https://instagram.com/tallerzero" target="_blank" rel="noreferrer" className="hover:text-white transition-colors flex items-center gap-2 group">
+                    <a href="https://www.instagram.com/tallerzro/?hl=es" target="_blank" rel="noreferrer" className="hover:text-white transition-colors flex items-center gap-2 group">
                         <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> Instagram
                     </a>
-                    <a href="https://youtube.com/@tallerzero" target="_blank" rel="noreferrer" className="hover:text-white transition-colors flex items-center gap-2 group">
+                    <a href="https://www.youtube.com/@Taller_zero" target="_blank" rel="noreferrer" className="hover:text-white transition-colors flex items-center gap-2 group">
                         <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> YouTube
                     </a>
-                    <a href="https://soundcloud.com/tallerzero" target="_blank" rel="noreferrer" className="hover:text-white transition-colors flex items-center gap-2 group">
+                    <a href="https://soundcloud.com/taller-0?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" target="_blank" rel="noreferrer" className="hover:text-white transition-colors flex items-center gap-2 group">
                         <span className="w-0 h-[1px] bg-white group-hover:w-4 transition-all duration-300"></span> SoundCloud
                     </a>
                 </div>
