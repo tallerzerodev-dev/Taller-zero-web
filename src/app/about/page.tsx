@@ -22,6 +22,13 @@ export default async function AboutPage() {
       where: { id: 'about-singleton' }
     })
 
+    const defaultInfoSquares = [
+        { title: "SESSIONS", desc: "Sets exclusivos grabados en formato video/audio desde locaciones industriales secretas. Solo techno, industrial y variantes contundentes del sonido underground.", bgColor: "bg-gray-950" },
+        { title: "MERCH", desc: "Diseño utilitario. Prendas fabricadas con algoritmos de alta resistencia y gramaje pesado. Creado por y para quienes habitan el ecosistema nocturno y diurno.", bgColor: "bg-gray-950" },
+        { title: "COMMUNITY", desc: "Fomentamos una red de creativos, djs, productores y artesanos. La intersección final donde el esfuerzo artesanal se cruza con las visuales digitales.", bgColor: "bg-gray-950" },
+        { title: "NEW SQUARE", desc: "Espacio disponible para más manifiestos.", bgColor: "bg-gray-950" }
+    ]
+
     if (!aboutContent) {
       aboutContent = {
         id: 'about-singleton',
@@ -29,9 +36,23 @@ export default async function AboutPage() {
         content: 'Nacimos de la necesidad de fusionar dos mundos que coexisten en paralelo: el trabajo manual/creativo y la música electrónica de vanguardia.\n\nConvertimos talleres, bodegas y espacios de manufactura reales en escenarios efímeros. Documentamos sets en crudo, sin filtros, capturando la energía industrial del entorno y la brutalidad del sonido.',
         coverImage: 'https://images.unsplash.com/photo-1599423423926-b8b80b206412?q=80&w=2070&auto=format&fit=crop',
         showMarquee: true,
+        marqueeText: '• RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS',
+        infoSquares: defaultInfoSquares as any,
         updatedAt: new Date()
       }
     }
+
+    const marqueeText = aboutContent.marqueeText || '• RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS'
+    let infoSquares = defaultInfoSquares;
+    if (aboutContent.infoSquares) {
+        try {
+            infoSquares = typeof aboutContent.infoSquares === 'string' ? JSON.parse(aboutContent.infoSquares as string) : aboutContent.infoSquares;
+        } catch(e) {
+            console.error(e)
+        }
+    }
+    // Ensure we only have up to 4 squares
+    infoSquares = infoSquares.slice(0, 4);
 
     return (
         <main className="flex-1 flex flex-col bg-black min-h-screen pt-24 pb-32">
@@ -74,25 +95,23 @@ export default async function AboutPage() {
             </section>
 
             {/* MANIFESTO MARQUEE */}
-            <section className="w-full bg-white text-black py-4 overflow-hidden mb-24 rotate-[-1deg] scale-105">
-                <div className="flex w-max animate-[marquee_20s_linear_infinite]">
-                    <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter whitespace-nowrap px-8">
-                        • RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS
-                    </h2>
-                    <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter whitespace-nowrap px-8">
-                        • RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS
-                    </h2>
-                </div>
-            </section>
+            {aboutContent.showMarquee && (
+                <section className="w-full bg-white text-black py-4 overflow-hidden mb-24 rotate-[-1deg] scale-105">
+                    <div className="flex w-max animate-[marquee_20s_linear_infinite]">
+                        <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter whitespace-nowrap px-8">
+                            {marqueeText}
+                        </h2>
+                        <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter whitespace-nowrap px-8">
+                            {marqueeText}
+                        </h2>
+                    </div>
+                </section>
+            )}
 
             {/* TEAM / MANIFESTO */}
-            <section className="px-6 w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
-                {[
-                    { title: "SESSIONS", desc: "Sets exclusivos grabados en formato video/audio desde locaciones industriales secretas. Solo techno, industrial y variantes contundentes del sonido underground." },
-                    { title: "MERCH", desc: "Diseño utilitario. Prendas fabricadas con algoritmos de alta resistencia y gramaje pesado. Creado por y para quienes habitan el ecosistema nocturno y diurno." },
-                    { title: "COMMUNITY", desc: "Fomentamos una red de creativos, djs, productores y artesanos. La intersección final donde el esfuerzo artesanal se cruza con las visuales digitales." }
-                ].map((item, i) => (
-                    <FadeIn delay={0.2 * i} key={item.title} className="bg-gray-950 border border-gray-800 p-8 hover:border-white transition-colors duration-500 group">
+            <section className="px-6 w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {infoSquares.map((item: any, i: number) => (
+                    <FadeIn delay={0.1 * i} key={i} className={`${item.bgColor || 'bg-gray-950'} border border-gray-800 p-8 hover:border-white transition-colors duration-500 group`}>
                         <h3 className="font-mono text-xl font-bold uppercase tracking-widest text-white mb-4 group-hover:-translate-y-2 transition-transform duration-300">
                             {item.title}
                         </h3>

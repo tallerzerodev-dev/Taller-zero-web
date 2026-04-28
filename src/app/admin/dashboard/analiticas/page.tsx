@@ -28,24 +28,38 @@ export default function AnaliticasPage() {
                 </FadeIn>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    <div className="bg-[#0a0a0a] border border-[#333] p-6 text-center">
-                        <h3 className="text-[#888] font-mono text-xs uppercase tracking-widest mb-2">Ingresos (Pagados)</h3>
-                        <p className="text-4xl font-bold text-white">${data?.totalRevenue?.toLocaleString('es-CL')}</p>
+                    {/* Google Analytics Section */}
+                    <div className="bg-[#1a1a1a] border border-[#4ade80] p-6 text-center col-span-1 md:col-span-2 flex flex-col justify-center relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#4ade80] opacity-10 rounded-full blur-2xl"></div>
+                        <h3 className="text-[#4ade80] font-mono text-xs uppercase tracking-widest mb-4 flex items-center justify-center gap-2">
+                            <span className="w-2 h-2 bg-[#4ade80] rounded-full animate-pulse"></span>
+                            Tráfico GA4 (Últimos 30 días)
+                        </h3>
+                        {data?.gaData?.error ? (
+                            <p className="text-[#888] font-mono text-xs mb-2">{data.gaData.error}</p>
+                        ) : (
+                            <div className="flex justify-around items-center w-full">
+                                <div>
+                                    <p className="text-[#888] font-mono text-[10px] uppercase mb-1">Usuarios Activos</p>
+                                    <p className="text-4xl font-bold text-white">{data?.gaData?.activeUsers?.toLocaleString('es-CL') || 0}</p>
+                                </div>
+                                <div className="w-px h-12 bg-[#333]"></div>
+                                <div>
+                                    <p className="text-[#888] font-mono text-[10px] uppercase mb-1">Vistas de Página</p>
+                                    <p className="text-4xl font-bold text-white">{data?.gaData?.pageViews?.toLocaleString('es-CL') || 0}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="bg-[#0a0a0a] border border-[#333] p-6 text-center">
-                        <h3 className="text-[#888] font-mono text-xs uppercase tracking-widest mb-2">Pedidos Realizados</h3>
+                    <div className="bg-[#0a0a0a] border border-[#333] p-6 text-center flex flex-col justify-center">
+                        <h3 className="text-[#888] font-mono text-xs uppercase tracking-widest mb-2">Pedidos (Total)</h3>
                         <p className="text-4xl font-bold text-white">{data?.totalOrders}</p>
                     </div>
 
-                    <div className="bg-[#0a0a0a] border border-[#333] p-6 text-center">
-                        <h3 className="text-[#888] font-mono text-xs uppercase tracking-widest mb-2">Productos Configurados</h3>
-                        <p className="text-4xl font-bold text-white">{data?.totalProducts}</p>
-                    </div>
-
-                    <div className="bg-[#0a0a0a] border border-[#333] p-6 text-center">
-                        <h3 className="text-[#888] font-mono text-xs uppercase tracking-widest mb-2">Stock Total (Bodega)</h3>
-                        <p className="text-4xl font-bold text-white">{data?.totalStock}</p>
+                    <div className="bg-[#0a0a0a] border border-[#333] p-6 text-center flex flex-col justify-center">
+                        <h3 className="text-[#888] font-mono text-xs uppercase tracking-widest mb-2">Ingresos (Pagados)</h3>
+                        <p className="text-3xl font-bold text-[#4ade80]">${data?.totalRevenue?.toLocaleString('es-CL')}</p>
                     </div>
                 </div>
 

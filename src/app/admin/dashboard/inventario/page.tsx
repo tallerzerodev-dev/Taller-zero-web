@@ -63,9 +63,13 @@ export default function InventarioPage() {
         formData.append('file', blob, 'taller-zero-product.' + (blob.type.split('/')[1] || 'bin'))
 
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (!uploadRes.ok) {
+            const textResponse = await uploadRes.text()
+            throw new Error(`Upload failed (${uploadRes.status}): ${textResponse.slice(0, 50)}`)
+        }
         const data = await uploadRes.json()
-        if (uploadRes.ok && data.url) return data.url
-        throw new Error('Upload error')
+        if (data.url) return data.url
+        throw new Error('Upload error: no url returned')
     }
 
     const handleSubmit = async (e: React.FormEvent) => {

@@ -49,6 +49,9 @@ const AboutContentSchema = z.object({
   title: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   content: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   coverImage: z.string().nullish().transform(v => v || ''),
+  showMarquee: z.boolean().nullish().transform(v => v === null || v === undefined ? true : Boolean(v)),
+  marqueeText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
+  infoSquares: z.any().nullish(), // JSON string or object
 });
 
 const ArtistSchema = z.object({
@@ -203,12 +206,18 @@ export async function POST(request: Request) {
           title: content.title,
           content: content.content,
           coverImage: content.coverImage,
+          showMarquee: content.showMarquee,
+          marqueeText: content.marqueeText,
+          infoSquares: content.infoSquares ? (typeof content.infoSquares === 'string' ? JSON.parse(content.infoSquares) : content.infoSquares) : undefined,
         },
         create: {
           id: 'about-singleton',
           title: content.title || '',
           content: content.content || '',
           coverImage: content.coverImage || '',
+          showMarquee: content.showMarquee !== undefined ? content.showMarquee : true,
+          marqueeText: content.marqueeText || '',
+          infoSquares: content.infoSquares ? (typeof content.infoSquares === 'string' ? JSON.parse(content.infoSquares) : content.infoSquares) : undefined,
         },
       });
       console.log('ADMIN/SAVE: ABOUT guardado:', JSON.stringify(saved));

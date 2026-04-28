@@ -43,6 +43,14 @@ export function PreviewHome({ content }: { content: any }) {
 }
 
 export function PreviewAbout({ content }: { content: any }) {
+  const defaultInfoSquares = [
+      { title: "SESSIONS", desc: "Sets exclusivos grabados en formato video/audio desde locaciones industriales secretas. Solo techno, industrial y variantes contundentes del sonido underground.", bgColor: "bg-gray-950" },
+      { title: "MERCH", desc: "Diseño utilitario. Prendas fabricadas con algoritmos de alta resistencia y gramaje pesado. Creado por y para quienes habitan el ecosistema nocturno y diurno.", bgColor: "bg-gray-950" },
+      { title: "COMMUNITY", desc: "Fomentamos una red de creativos, djs, productores y artesanos. La intersección final donde el esfuerzo artesanal se cruza con las visuales digitales.", bgColor: "bg-gray-950" },
+      { title: "NEW SQUARE", desc: "Espacio disponible para más manifiestos.", bgColor: "bg-gray-950" }
+  ]
+  const squares = content.infoSquares || defaultInfoSquares;
+
   return (
     <div className="w-full max-w-[1200px] mx-auto border border-[#333] bg-black shadow-2xl p-8 relative pointer-events-none">
       <div className="border-b border-[#333] pb-8 mb-8 text-white relative z-10 flex flex-col items-center">
@@ -53,10 +61,25 @@ export function PreviewAbout({ content }: { content: any }) {
           <div className="absolute inset-0 bg-cover bg-center grayscale opacity-80" style={{ backgroundImage: `url(${content.coverImage})` }}></div>
         </div>
       )}
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto mb-12">
         <p className="font-mono text-sm leading-relaxed text-[#888] whitespace-pre-line text-justify">
           {content.content}
         </p>
+      </div>
+
+      {content.showMarquee && (
+        <div className="w-full bg-white text-black font-mono text-sm py-3 overflow-hidden whitespace-nowrap font-bold uppercase tracking-widest flex items-center rotate-[-1deg] scale-105 mb-12">
+          <span className="inline-block animate-pulse">{content.marqueeText || '• RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS'}</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {squares.map((sq: any, i: number) => (
+              <div key={i} className={`${sq.bgColor || 'bg-gray-950'} border border-[#333] p-6 text-white`}>
+                  <h3 className="font-mono text-lg font-bold uppercase tracking-widest mb-4">{sq.title}</h3>
+                  <p className="font-mono text-xs text-[#888]">{sq.desc}</p>
+              </div>
+          ))}
       </div>
     </div>
   )

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth'
+import { BetaAnalyticsDataClient } from '@google-analytics/data';
 
 export async function GET() {
     const session = await getServerSession(authOptions)
@@ -33,12 +34,43 @@ export async function GET() {
         return { title: p?.title || 'Borrados', quantity: ts._sum.quantity || 0 }
     }))
 
+    // Google Analytics Integration
+    let gaData = { activeUsers: 0, pageViews: 0, error: 'Configuración de GA4 incompleta' };
+    const propertyId = process.env.GA_PROPERTY_ID;
+    
+    if (process.env.GA_CLIENT_EMAIL && process.env.GA_PRIVATE_KEY && propertyId) {
+        try {
+            const gaClient = new BetaAnalyticsDataClient({
+                credentials: {
+                    client_email: process.env.GA_CLIENT_EMAIL,
+                    private_key: process.env.GA_PRIVATE_KEY.replace(/\\n/g, '\n')
+                }
+            });
+
+            const [response] = await gaClient.runReport({
+                property: `properties/${propertyId}`,
+                dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+                metrics: [{ name: 'activeUsers' }, { name: 'screenPageViews' }],
+            });
+            
+            gaData = {
+                activeUsers: parseInt(response.rows?.[0]?.metricValues?.[0]?.value || '0'),
+                pageViews: parseInt(response.rows?.[0]?.metricValues?.[1]?.value || '0'),
+                error: '',
+            };
+        } catch (error) {
+            console.error("Error fetching GA Data", error);
+            gaData.error = "Error al conectar con Google Analytics";
+        }
+    }
+
     return NextResponse.json({
         totalProducts,
         totalStock,
         totalOrders,
         totalRevenue,
         mostViewedProduct: mostViewedProduct || { title: 'N/A', views: 0 },
-        topSellers
+        topSellers,
+        gaData
     })
 }

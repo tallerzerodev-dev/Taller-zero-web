@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { prisma } from "./prisma";
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -10,6 +11,27 @@ export const authOptions: NextAuthOptions = {
     ],
     secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
+        async signIn({ user, account, profile }) {
+            if (user && user.email) {
+                try {
+                    await prisma.user.upsert({
+                        where: { email: user.email },
+                        update: {
+                            name: user.name,
+                            image: user.image,
+                        },
+                        create: {
+                            email: user.email,
+                            name: user.name,
+                            image: user.image,
+                        }
+                    });
+                } catch (e) {
+                    console.error("Error upserting user on signIn:", e);
+                }
+            }
+            return true;
+        },
         async session({ session, token }) {
             if (session?.user) {
                 // Marcamos si es admin comprobando correos preautorizados (en minúsculas)

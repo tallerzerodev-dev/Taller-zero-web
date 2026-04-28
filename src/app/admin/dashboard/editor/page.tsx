@@ -10,7 +10,12 @@ import { PreviewHome, PreviewAbout, PreviewSession, PreviewVip } from './compone
 // Usar 'sessions' como clave y valor de page para backend
 const defaultEditorData: Record<string, any> = {
   home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '' },
-  about: { title: '', content: '', showMarquee: true, coverImage: '' },
+  about: { title: '', content: '', showMarquee: true, marqueeText: '• RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS', coverImage: '', infoSquares: [
+        { title: "SESSIONS", desc: "Sets exclusivos grabados en formato video/audio desde locaciones industriales secretas. Solo techno, industrial y variantes contundentes del sonido underground.", bgColor: "bg-gray-950" },
+        { title: "MERCH", desc: "Diseño utilitario. Prendas fabricadas con algoritmos de alta resistencia y gramaje pesado. Creado por y para quienes habitan el ecosistema nocturno y diurno.", bgColor: "bg-gray-950" },
+        { title: "COMMUNITY", desc: "Fomentamos una red de creativos, djs, productores y artesanos. La intersección final donde el esfuerzo artesanal se cruza con las visuales digitales.", bgColor: "bg-gray-950" },
+        { title: "NEW SQUARE", desc: "Espacio disponible para más manifiestos.", bgColor: "bg-gray-950" }
+    ] },
   sessions: { title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '', spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '', artists: [] },
   vip: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' },
   winner: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' },
@@ -92,6 +97,14 @@ function EditorContent() {
           if (res.ok) {
             const data = await res.json();
             if (data && Object.keys(data).length > 0 && data.id) {
+              if (page === 'about' && typeof data.infoSquares === 'string') {
+                try {
+                    data.infoSquares = JSON.parse(data.infoSquares)
+                } catch(e) {}
+              }
+              if (page === 'about' && !data.infoSquares) {
+                  data.infoSquares = defaultEditorData.about.infoSquares
+              }
               setContent(data);
             } else {
               setContent(defaultEditorData[page]);
@@ -152,6 +165,12 @@ function EditorContent() {
     handleChange('artists', newArtists);
   }
 
+  const handleInfoSquareChange = (index: number, field: string, value: string) => {
+    const newSquares = [...(content.infoSquares || defaultEditorData.about.infoSquares)];
+    newSquares[index] = { ...newSquares[index], [field]: value };
+    handleChange('infoSquares', newSquares);
+  }
+
   const uploadIfBlob = async (url: string) => {
     if (!url || !url.startsWith('blob:')) return url;
 
@@ -195,6 +214,7 @@ function EditorContent() {
         if (finalContent.featuredItemImage) finalContent.featuredItemImage = await uploadIfBlob(finalContent.featuredItemImage);
       } else if (page === 'about') {
         if (finalContent.coverImage) finalContent.coverImage = await uploadIfBlob(finalContent.coverImage);
+        if (finalContent.infoSquares) finalContent.infoSquares = JSON.stringify(finalContent.infoSquares);
       } else if (page === 'sessions') {
         if (finalContent.gifUrl) finalContent.gifUrl = await uploadIfBlob(finalContent.gifUrl);
         if (finalContent.trailerUrl) finalContent.trailerUrl = await uploadIfBlob(finalContent.trailerUrl);
@@ -433,6 +453,31 @@ function EditorContent() {
                   <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Subir Imagen de Portada Info</label>
                   <input type="file" accept="image/*" className="w-full bg-black border border-[#333] p-2 text-white text-xs file:mr-4 file:bg-white file:text-black file:border-0 file:px-4 file:py-2 file:text-xs file:font-mono file:uppercase file:cursor-pointer hover:file:bg-[#ccc]" onChange={(e) => handleFileWithLimit(e.target.files?.[0], url => handleChange('coverImage', url), e.target)} />
                 </div>
+              </div>
+              <div className="space-y-6">
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs">3. MARQUEE</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <input type="checkbox" checked={content.showMarquee} onChange={(e) => handleChange('showMarquee', e.target.checked)} id="showMarquee" />
+                  <label htmlFor="showMarquee" className="text-[10px] text-white uppercase tracking-widest">Mostrar Marquee (Cinta desplazable)</label>
+                </div>
+                {content.showMarquee && (
+                  <textarea rows={2} value={content.marqueeText || ''} onChange={(e) => handleChange('marqueeText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-[10px] mb-2" placeholder="Texto Marquésina" />
+                )}
+              </div>
+              <div className="space-y-6">
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs">4. INFO SQUARES (4 MÁX)</h3>
+                {(content.infoSquares || defaultEditorData.about.infoSquares).map((square: any, idx: number) => (
+                  <div key={idx} className="bg-[#050505] border border-[#222] p-4 space-y-2 relative">
+                    <span className="text-white font-bold text-xs mb-2 block">Cuadro {idx + 1}</span>
+                    <input type="text" placeholder="Título" value={square.title} onChange={(e) => handleInfoSquareChange(idx, 'title', e.target.value)} className="w-full bg-black border border-[#333] p-2 text-white text-xs" />
+                    <textarea rows={2} placeholder="Descripción" value={square.desc} onChange={(e) => handleInfoSquareChange(idx, 'desc', e.target.value)} className="w-full bg-black border border-[#333] p-2 text-white text-[10px]" />
+                    <select value={square.bgColor || 'bg-gray-950'} onChange={(e) => handleInfoSquareChange(idx, 'bgColor', e.target.value)} className="w-full bg-black border border-[#333] p-2 text-white text-xs">
+                        <option value="bg-gray-950">Gris Muy Oscuro (bg-gray-950)</option>
+                        <option value="bg-black">Negro (bg-black)</option>
+                        <option value="bg-gray-900">Gris Oscuro (bg-gray-900)</option>
+                    </select>
+                  </div>
+                ))}
               </div>
             </div>
           )}

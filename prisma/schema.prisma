@@ -5,6 +5,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 datasource db {
   provider = "postgresql"
   url = env("POSTGRES_PRISMA_URL")
@@ -84,7 +93,9 @@ model AboutContent {
   title       String?
   content     String?  @db.Text
   showMarquee Boolean  @default(true)
+  marqueeText String?  @db.Text
   coverImage  String?
+  infoSquares Json?
 
   updatedAt   DateTime @updatedAt
 }

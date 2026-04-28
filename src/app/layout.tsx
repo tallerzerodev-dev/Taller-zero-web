@@ -7,11 +7,8 @@ import { Providers } from '@/components/Providers'
 import { prisma } from '@/lib/prisma'
 import './globals.css'
 export const dynamic = 'force-dynamic'
+import { Toaster } from 'react-hot-toast'
 import { Analytics } from "@vercel/analytics/react"
-
-
-
-
 const spaceMono = Space_Mono({
   weight: ['400', '700'],
   subsets: ['latin'],
@@ -94,6 +91,7 @@ export default async function RootLayout({
             <Analytics />
           </div>
           <Footer storeEnabled={homeData?.storeEnabled || false} />
+          <Toaster position="bottom-right" />
         </Providers>
       </body>
     </html>
