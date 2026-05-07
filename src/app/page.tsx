@@ -33,7 +33,7 @@ export default async function Home() {
                         {homeData.heroBackground.toLowerCase().endsWith('.mp4') || homeData.heroBackground.toLowerCase().endsWith('.webm') || homeData.heroBackground.toLowerCase().endsWith('.mov') ? (
                             <video src={homeData.heroBackground} autoPlay loop muted playsInline className="w-full h-full object-cover" />
                         ) : (
-                            <Image src={homeData.heroBackground} alt="Hero Background" fill className="object-cover object-center" />
+                            <Image src={homeData.heroBackground} alt="Hero Background" fill priority className="object-cover object-center" />
                         )}
                     </div>
                 )}

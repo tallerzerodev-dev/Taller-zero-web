@@ -51,7 +51,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
                     {storeEnabled && (
                         <Link
                             href="/cart"
-                            className="group flex items-center bg-white text-black h-10 w-10 hover:w-[155px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden px-2.5 ml-2"
+                            className="group flex items-center bg-white text-black h-10 w-10 hover:w-[155px] transition-all duration-500 ease-custom overflow-hidden px-2.5 ml-2"
                         >
                             <ShoppingCart className="w-5 h-5 shrink-0" />
                             <span className="font-bold text-sm tracking-widest whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-500 ml-3 flex gap-2">

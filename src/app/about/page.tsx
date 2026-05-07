@@ -76,6 +76,8 @@ export default async function AboutPage() {
                             src={aboutContent.coverImage || "https://images.unsplash.com/photo-1599423423926-b8b80b206412?q=80&w=2070&auto=format&fit=crop"}
                             alt="Taller Zero - Espacio industrial de música underground en Chile"
                             fill
+                            priority
+                            sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover mix-blend-luminosity grayscale group-hover:scale-105 transition-transform duration-1000"
                         />
                         <div className="absolute inset-0 border-[16px] border-black/20 mix-blend-overlay pointer-events-none"></div>

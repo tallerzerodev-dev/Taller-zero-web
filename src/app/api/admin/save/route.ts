@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
+import { authOptions } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -45,13 +47,19 @@ const HomeContentSchema = z.object({
   storeEnabled: z.boolean().nullish().transform(v => Boolean(v)),
 });
 
+const InfoSquareSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  bgColor: z.string().optional(),
+}).catch({}); // Fallback en caso de que un elemento esté mal formado
+
 const AboutContentSchema = z.object({
   title: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   content: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   coverImage: z.string().nullish().transform(v => v || ''),
   showMarquee: z.boolean().nullish().transform(v => v === null || v === undefined ? true : Boolean(v)),
   marqueeText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  infoSquares: z.any().nullish(), // JSON string or object
+  infoSquares: z.union([z.string(), z.array(InfoSquareSchema), z.unknown()]).nullish(),
 });
 
 const ArtistSchema = z.object({
@@ -132,6 +140,11 @@ const SaveActionSchema = z.discriminatedUnion('page', [
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
     const body = await request.json();
     console.log('ADMIN/SAVE: Body recibido:', JSON.stringify(body));
 
@@ -280,34 +293,36 @@ export async function POST(request: Request) {
           }
         }
 
-        // Eliminamos los artistas antiguos y los reemplazamos por los nuevos (estrategia sencilla de actualización 1 a muchos)
-        await prisma.artist.deleteMany({
-          where: { sessionId: id }
-        });
+        // Eliminamos los artistas antiguos y los reemplazamos por los nuevos de forma segura usando una transacción
+        const updatedSession = await prisma.$transaction(async (tx) => {
+          await tx.artist.deleteMany({
+            where: { sessionId: id }
+          });
 
-        const updatedSession = await prisma.session.update({
-          where: { id: id },
-          data: {
-            title: sessionData.title,
-            sessionNumber: sessionData.sessionNumber,
-            dateText: sessionData.dateText,
-            gifUrl: sessionData.gifUrl,
-            trailerUrl: sessionData.trailerUrl,
-            spinup: sessionData.spinup,
-            showLeftColInfo: sessionData.showLeftColInfo,
-            leftColLine1: sessionData.leftColLine1,
-            leftColLine2: sessionData.leftColLine2,
-            leftColLine3: sessionData.leftColLine3,
-            artists: {
-              create: safeArtists.map((a: any) => ({
-                name: a.name || 'Artista ' + Math.floor(Math.random() * 1000),
-                photo: a.photo,
-                profilePhoto: a.profilePhoto,
-                bio: a.bio,
-                youtube: a.youtube,
-              })),
+          return tx.session.update({
+            where: { id: id },
+            data: {
+              title: sessionData.title,
+              sessionNumber: sessionData.sessionNumber,
+              dateText: sessionData.dateText,
+              gifUrl: sessionData.gifUrl,
+              trailerUrl: sessionData.trailerUrl,
+              spinup: sessionData.spinup,
+              showLeftColInfo: sessionData.showLeftColInfo,
+              leftColLine1: sessionData.leftColLine1,
+              leftColLine2: sessionData.leftColLine2,
+              leftColLine3: sessionData.leftColLine3,
+              artists: {
+                create: safeArtists.map((a: any) => ({
+                  name: a.name || 'Artista ' + Math.floor(Math.random() * 1000),
+                  photo: a.photo,
+                  profilePhoto: a.profilePhoto,
+                  bio: a.bio,
+                  youtube: a.youtube,
+                })),
+              },
             },
-          },
+          });
         });
         console.log('ADMIN/SAVE: SESION editada guardada:', JSON.stringify(updatedSession));
         return NextResponse.json({ success: true, data: updatedSession });

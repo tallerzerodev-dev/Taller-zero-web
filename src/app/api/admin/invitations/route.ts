@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
 import crypto from 'crypto'
+import { authOptions } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
     const invitations = await prisma.invitation.findMany({
       orderBy: { createdAt: 'desc' }
     })
@@ -19,6 +24,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+
     const { guests, type } = await request.json()
 
     if (!guests || !Array.isArray(guests) || guests.length === 0) {

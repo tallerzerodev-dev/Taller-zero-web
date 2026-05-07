@@ -106,7 +106,7 @@ export default async function ArtistDetailPage({ params }: { params: { id: strin
                         <div className="w-full aspect-video border border-[#333] bg-[#050505] relative overflow-hidden group">
                             <div className="absolute inset-0 bg-[#ffffff]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
                             <iframe
-                                className="absolute inset-0 w-full h-full transition-all duration-[1500ms] p-1 md:p-2"
+                                className="absolute inset-0 w-full h-full transition-all duration-1500 p-1 md:p-2"
                                 src={getEmbedUrl(artist.youtube)}
                                 title={`Set de ${artist.name}`}
                                 frameBorder="0"
@@ -128,7 +128,7 @@ export default async function ArtistDetailPage({ params }: { params: { id: strin
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                     {/* Artist portrait & Name */}
                     <FadeIn delay={0.4} className="lg:col-span-5 flex flex-col gap-6">
-                        <div className="w-full relative border border-[#333] bg-[#0a0a0a] grayscale hover:grayscale-0 transition-all duration-[2000ms] overflow-hidden group aspect-[4/5] sm:aspect-square lg:aspect-[4/5]">
+                        <div className="w-full relative border border-[#333] bg-[#0a0a0a] grayscale hover:grayscale-0 transition-all duration-2000 overflow-hidden group aspect-[4/5] sm:aspect-square lg:aspect-[4/5]">
                             <Image
                                 src={(artist as any).profilePhoto || artist.photo || '/placeholder.jpg'}
                                 alt={artist.name}

@@ -126,9 +126,9 @@ export default async function SessionPage({ params }: { params: { id: string } }
                                     <div className="w-full h-[500px] md:h-[600px] relative bg-black border border-[#333] group-hover:border-[#777] transition-all duration-700 overflow-hidden rounded-sm">
 
                                         {/* BACKGROUND IMAGE */}
-                                        <div className="absolute inset-0 z-0 transition-transform duration-[2000ms] group-hover:scale-105">
+                                        <div className="absolute inset-0 z-0 transition-transform duration-2000 group-hover:scale-105">
                                             {artist.photo ? (
-                                                <Image src={artist.photo} alt={artist.name} fill className="object-cover object-[center_top] grayscale-[0.5] mix-blend-luminosity group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-700" />
+                                                <Image src={artist.photo} alt={artist.name} fill priority={idx < 3} sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" className="object-cover object-[center_top] grayscale-[0.5] mix-blend-luminosity group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-700" />
                                             ) : (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-[#111]"><span className="font-mono text-xs uppercase text-[#555]">No Photo</span></div>
                                             )}
