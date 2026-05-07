@@ -84,6 +84,7 @@ model HomeContent {
   featuredItemSubtitle String?
 
   storeEnabled         Boolean  @default(false) // Toggle global para E-commerce
+  applicationsEnabled  Boolean  @default(false) // Toggle para formulario de DJs
 
   updatedAt            DateTime @updatedAt
 }

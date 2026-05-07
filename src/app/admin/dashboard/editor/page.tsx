@@ -9,7 +9,7 @@ import { PreviewHome, PreviewAbout, PreviewSession, PreviewVip } from './compone
 
 // Usar 'sessions' como clave y valor de page para backend
 const defaultEditorData: Record<string, any> = {
-  home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '' },
+  home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '', storeEnabled: false, applicationsEnabled: false },
   about: { title: '', content: '', showMarquee: true, marqueeText: '• RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS', coverImage: '', infoSquares: [
         { title: "SESSIONS", desc: "Sets exclusivos grabados en formato video/audio desde locaciones industriales secretas. Solo techno, industrial y variantes contundentes del sonido underground.", bgColor: "bg-gray-950" },
         { title: "MERCH", desc: "Diseño utilitario. Prendas fabricadas con algoritmos de alta resistencia y gramaje pesado. Creado por y para quienes habitan el ecosistema nocturno y diurno.", bgColor: "bg-gray-950" },
@@ -436,6 +436,19 @@ function EditorContent() {
 
                 <input type="text" value={content.featuredItemTitle || ''} onChange={(e) => handleChange('featuredItemTitle', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="TÃ­tulo de Prenda (Ej: POLERA ZERO)" />
                 <input type="text" value={content.featuredItemSubtitle || ''} onChange={(e) => handleChange('featuredItemSubtitle', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="SubtÃ­tulo Prenda (Ej: $25.000 CLP)" />
+              </div>
+              <div className="space-y-6">
+                <h3 className="text-white border-b border-[#333] pb-2 text-xs">3. CONFIGURACIÓN GLOBAL</h3>
+                <div className="flex flex-col gap-4">
+                  <label className="flex items-center gap-3 text-white text-xs font-mono uppercase tracking-widest cursor-pointer">
+                    <input type="checkbox" checked={content.storeEnabled || false} onChange={(e) => handleChange('storeEnabled', e.target.checked)} className="w-4 h-4 accent-white" />
+                    Habilitar Tienda (E-commerce)
+                  </label>
+                  <label className="flex items-center gap-3 text-white text-xs font-mono uppercase tracking-widest cursor-pointer">
+                    <input type="checkbox" checked={content.applicationsEnabled || false} onChange={(e) => handleChange('applicationsEnabled', e.target.checked)} className="w-4 h-4 accent-white" />
+                    Habilitar Postulaciones DJ
+                  </label>
+                </div>
               </div>
             </div>
           )}

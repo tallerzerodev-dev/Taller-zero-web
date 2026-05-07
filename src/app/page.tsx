@@ -53,11 +53,21 @@ export default async function Home() {
                         </h1>
                     </FadeIn>
                     <FadeIn y={20} delay={0.4}>
-                        <div className="group inline-block">
-                            <Link href="/about" className="flex items-center gap-4 text-[#888] font-mono hover:text-white transition-colors duration-300">
-                                <span className="text-xs uppercase tracking-widest">+ EXPLORAR EL MANIFIESTO</span>
-                                <span className="w-12 h-[1px] bg-[#333] group-hover:bg-white group-hover:w-24 transition-all duration-500 ease-out"></span>
-                            </Link>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8 sm:gap-12">
+                            <div className="group inline-block">
+                                <Link href="/about" className="flex items-center gap-4 text-[#888] font-mono hover:text-white transition-colors duration-300">
+                                    <span className="text-xs uppercase tracking-widest">+ EXPLORAR EL MANIFIESTO</span>
+                                    <span className="hidden sm:block w-12 h-[1px] bg-[#333] group-hover:bg-white group-hover:w-24 transition-all duration-500 ease-out"></span>
+                                </Link>
+                            </div>
+                            {homeData?.applicationsEnabled && (
+                                <Link 
+                                    href="/apply" 
+                                    className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold border border-white text-white px-4 py-2 hover:bg-white hover:text-black transition-all select-none animate-pulse hover:animate-none"
+                                >
+                                    [ POSTULACIONES ABIERTAS ]
+                                </Link>
+                            )}
                         </div>
                     </FadeIn>
                 </StaggerContainer>

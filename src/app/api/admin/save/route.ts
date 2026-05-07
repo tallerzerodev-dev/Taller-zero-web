@@ -45,6 +45,7 @@ const HomeContentSchema = z.object({
   featuredItemTitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   featuredItemSubtitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   storeEnabled: z.boolean().nullish().transform(v => Boolean(v)),
+  applicationsEnabled: z.boolean().nullish().transform(v => Boolean(v)),
 });
 
 const InfoSquareSchema = z.object({
@@ -186,6 +187,7 @@ export async function POST(request: Request) {
           featuredItemTitle: content.featuredItemTitle,
           featuredItemSubtitle: content.featuredItemSubtitle,
           storeEnabled: content.storeEnabled,
+          applicationsEnabled: content.applicationsEnabled,
         },
         create: {
           id: 'home-singleton',
@@ -200,6 +202,7 @@ export async function POST(request: Request) {
           featuredItemTitle: content.featuredItemTitle || '',
           featuredItemSubtitle: content.featuredItemSubtitle || '',
           storeEnabled: Boolean(content.storeEnabled),
+          applicationsEnabled: Boolean(content.applicationsEnabled),
         },
       });
       console.log('ADMIN/SAVE: HOME guardado:', JSON.stringify(saved));

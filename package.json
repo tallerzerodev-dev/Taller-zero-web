@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.1",
+    "@hookform/resolvers": "^5.2.2",
     "@vercel/analytics": "^2.0.1",
     "browser-image-compression": "^2.0.2",
     "cloudinary": "^2.9.0",
