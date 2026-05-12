@@ -10,12 +10,14 @@ import { PreviewHome, PreviewAbout, PreviewSession, PreviewVip } from './compone
 // Usar 'sessions' como clave y valor de page para backend
 const defaultEditorData: Record<string, any> = {
   home: { heroTitle: '', heroSubtitle: '', heroBackground: '', featuredSessionId: '', featuredSessionTitle: '', featuredSessionGif: '', featuredItemImage: '', featuredItemTitle: '', featuredItemSubtitle: '', tickerText: '', storeEnabled: false, applicationsEnabled: false },
-  about: { title: '', content: '', showMarquee: true, marqueeText: '• RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS', coverImage: '', infoSquares: [
-        { title: "SESSIONS", desc: "Sets exclusivos grabados en formato video/audio desde locaciones industriales secretas. Solo techno, industrial y variantes contundentes del sonido underground.", bgColor: "bg-gray-950" },
-        { title: "MERCH", desc: "Diseño utilitario. Prendas fabricadas con algoritmos de alta resistencia y gramaje pesado. Creado por y para quienes habitan el ecosistema nocturno y diurno.", bgColor: "bg-gray-950" },
-        { title: "COMMUNITY", desc: "Fomentamos una red de creativos, djs, productores y artesanos. La intersección final donde el esfuerzo artesanal se cruza con las visuales digitales.", bgColor: "bg-gray-950" },
-        { title: "NEW SQUARE", desc: "Espacio disponible para más manifiestos.", bgColor: "bg-gray-950" }
-    ] },
+  about: {
+    title: '', content: '', showMarquee: true, marqueeText: '• RAW AUDIO • INDUSTRIAL VISUALS • HEAVYWEIGHT MERCH • NO COMPROMISE • BODEGA SESSIONS', coverImage: '', infoSquares: [
+      { title: "SESSIONS", desc: "Sets exclusivos grabados en formato video/audio desde locaciones industriales secretas. Solo techno, industrial y variantes contundentes del sonido underground.", bgColor: "bg-gray-950" },
+      { title: "MERCH", desc: "Diseño utilitario. Prendas fabricadas con algoritmos de alta resistencia y gramaje pesado. Creado por y para quienes habitan el ecosistema nocturno y diurno.", bgColor: "bg-gray-950" },
+      { title: "COMMUNITY", desc: "Fomentamos una red de creativos, djs, productores y artesanos. La intersección final donde el esfuerzo artesanal se cruza con las visuales digitales.", bgColor: "bg-gray-950" },
+      { title: "NEW SQUARE", desc: "Espacio disponible para más manifiestos.", bgColor: "bg-gray-950" }
+    ]
+  },
   sessions: { title: '', sessionNumber: '', dateText: '', gifUrl: '', trailerUrl: '', spinup: '', showLeftColInfo: true, leftColLine1: '', leftColLine2: '', leftColLine3: '', artists: [] },
   vip: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' },
   winner: { title: '', dateText: '', location: '', rules: '', lineup: '', welcomeImage: '', welcomeText: '', infoImage: '', farewellText: '' },
@@ -99,11 +101,11 @@ function EditorContent() {
             if (data && Object.keys(data).length > 0 && data.id) {
               if (page === 'about' && typeof data.infoSquares === 'string') {
                 try {
-                    data.infoSquares = JSON.parse(data.infoSquares)
-                } catch(e) {}
+                  data.infoSquares = JSON.parse(data.infoSquares)
+                } catch (e) { }
               }
               if (page === 'about' && !data.infoSquares) {
-                  data.infoSquares = defaultEditorData.about.infoSquares
+                data.infoSquares = defaultEditorData.about.infoSquares
               }
               setContent(data);
             } else {
@@ -148,10 +150,17 @@ function EditorContent() {
       }
     }
 
-    // Solo restringir tamaño para imágenes, no para videos
+    // Solo restringir tamaño para imágenes
     if (file.type.startsWith('image/')) {
       if (processedFile.size > 4.2 * 1024 * 1024) {
-        alert(`❌ EL ARCHIVO "${processedFile.name}" ES DEMASIADO GRANDE INCLUSO TRAS COMPRIMIR. Pesa ${(processedFile.size / 1048576).toFixed(2)} MB, y el límite en Vercel es 4.5 MB. ¡Por favor comprímelo manualmente a menos de 4MB!`);
+        alert(`❌ LA IMAGEN "${processedFile.name}" ES DEMASIADO GRANDE INCLUSO TRAS COMPRIMIR. Pesa ${(processedFile.size / 1048576).toFixed(2)} MB, y el límite en Vercel es 4.2 MB. ¡Por favor comprímela manualmente!`);
+        if (eventTarget) eventTarget.value = '';
+        return;
+      }
+    } else if (file.type.startsWith('video/')) {
+      // Los videos suben directo a Cloudinary. Límite sugerido 100MB
+      if (processedFile.size > 100 * 1024 * 1024) {
+        alert(`❌ EL VIDEO "${processedFile.name}" ES DEMASIADO GRANDE. Pesa ${(processedFile.size / 1048576).toFixed(2)} MB y el límite de subida directa a Cloudinary es 100 MB. ¡Usa YouTube o comprímelo!`);
         if (eventTarget) eventTarget.value = '';
         return;
       }
@@ -180,8 +189,47 @@ function EditorContent() {
       try {
         const res = await fetch(url);
         const blob = await res.blob();
-        const formData = new FormData();
         const ext = blob.type.split('/')[1] || 'bin';
+
+        // --- SUBIDA DIRECTA PARA VIDEOS (Bypass Vercel 4.5MB) ---
+        if (blob.type.startsWith('video/')) {
+          console.log(`[VIDEO UPLOAD] Detectado video de ${(blob.size / 1048576).toFixed(1)}MB, tipo: ${blob.type}`);
+          setSaveStatus(`SUBIENDO VIDEO (${(blob.size / 1048576).toFixed(1)}MB)... PUEDE DEMORAR`);
+          
+          // 1. Obtener firma del backend (pequeña petición)
+          const sigRes = await fetch('/api/upload/signature');
+          if (!sigRes.ok) throw new Error('Error al obtener firma de seguridad de Cloudinary');
+          const sigData = await sigRes.json();
+          console.log('[VIDEO UPLOAD] Firma obtenida de /api/upload/signature');
+
+          // 2. Armar formData directo para Cloudinary
+          const cloudDataForm = new FormData();
+          cloudDataForm.append('file', blob, `video.${ext}`);
+          cloudDataForm.append('api_key', sigData.apiKey);
+          cloudDataForm.append('timestamp', String(sigData.timestamp));
+          cloudDataForm.append('signature', sigData.signature);
+          cloudDataForm.append('folder', 'taller-zero');
+
+          // 3. Subir directo a la nube de Cloudinary
+          console.log('[VIDEO UPLOAD] Enviando a Cloudinary...');
+          const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/video/upload`, {
+            method: 'POST',
+            body: cloudDataForm
+          });
+          const cloudData = await cloudinaryRes.json();
+          console.log('[VIDEO UPLOAD] Respuesta Cloudinary:', cloudinaryRes.status, cloudData);
+          
+          if (!cloudinaryRes.ok) {
+            throw new Error(cloudData.error?.message || `Error en Cloudinary (HTTP ${cloudinaryRes.status})`);
+          }
+          
+          console.log('[VIDEO UPLOAD] ✅ URL final:', cloudData.secure_url);
+          setSaveStatus("VIDEO SUBIDO EXITOSAMENTE.");
+          return cloudData.secure_url;
+        }
+
+        // --- SUBIDA NORMAL PARA IMÁGENES (Pasa por Next.js / Vercel) ---
+        const formData = new FormData();
         formData.append('file', blob, `upload.${ext}`);
 
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
@@ -235,6 +283,13 @@ function EditorContent() {
       }
       setSaveStatus("GUARDANDO EN POSTGRESQL...");
       const action = searchParams.get('action') || 'edit';
+
+      // Debug: mostrar URLs finales antes de guardar
+      if (page === 'sessions') {
+        console.log('[SAVE] gifUrl final:', finalContent.gifUrl);
+        console.log('[SAVE] trailerUrl final:', finalContent.trailerUrl);
+        console.log('[SAVE] artists:', finalContent.artists?.map((a: any) => ({ name: a.name, photo: a.photo?.substring(0, 60), profilePhoto: a.profilePhoto?.substring(0, 60) })));
+      }
 
       const response = await fetch('/api/admin/save', {
         method: 'POST',
@@ -360,18 +415,44 @@ function EditorContent() {
                 </h3>
                 {content.artists.map((artist: any, index: number) => (
                   <div key={index} className="bg-[#050505] border border-[#222] p-4 space-y-2 relative">
-                    <button
-                      onClick={() => {
-                        setIsDirty(true);
-                        const newArtists = [...content.artists];
-                        newArtists.splice(index, 1);
-                        setContent({ ...content, artists: newArtists });
-                      }}
-                      className="absolute top-4 right-4 text-[#888] hover:text-white text-[10px] uppercase tracking-widest"
-                    >
-                      Eliminar
-                    </button>
-                    <span className="text-white font-bold text-xs mb-2 block">{artist.name || `Artista 0${index + 1}`}</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-white font-bold text-xs">{artist.name || `Artista 0${index + 1}`}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          disabled={index === 0}
+                          onClick={() => {
+                            setIsDirty(true);
+                            const newArtists = [...content.artists];
+                            [newArtists[index - 1], newArtists[index]] = [newArtists[index], newArtists[index - 1]];
+                            setContent({ ...content, artists: newArtists });
+                          }}
+                          className="text-[#888] hover:text-white text-xs disabled:opacity-20 disabled:cursor-not-allowed px-1"
+                          title="Subir"
+                        >▲</button>
+                        <button
+                          disabled={index === content.artists.length - 1}
+                          onClick={() => {
+                            setIsDirty(true);
+                            const newArtists = [...content.artists];
+                            [newArtists[index], newArtists[index + 1]] = [newArtists[index + 1], newArtists[index]];
+                            setContent({ ...content, artists: newArtists });
+                          }}
+                          className="text-[#888] hover:text-white text-xs disabled:opacity-20 disabled:cursor-not-allowed px-1"
+                          title="Bajar"
+                        >▼</button>
+                        <button
+                          onClick={() => {
+                            setIsDirty(true);
+                            const newArtists = [...content.artists];
+                            newArtists.splice(index, 1);
+                            setContent({ ...content, artists: newArtists });
+                          }}
+                          className="text-[#888] hover:text-red-500 text-[10px] uppercase tracking-widest ml-2"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
                     <input type="text" placeholder="Nombre Artista" value={artist.name} onChange={(e) => handleArtistChange(index, 'name', e.target.value)} className="w-full bg-black border border-[#333] p-2 text-white text-xs" />
                     <div>
                       <label className="text-[10px] text-white uppercase tracking-widest flex justify-between mb-1"><span>Foto Lineup (Tarjeta)</span> {artist.photo && <span className="text-[#4ade80]">✓ CARGADA</span>}</label>
@@ -486,9 +567,9 @@ function EditorContent() {
                     <input type="text" placeholder="Título" value={square.title} onChange={(e) => handleInfoSquareChange(idx, 'title', e.target.value)} className="w-full bg-black border border-[#333] p-2 text-white text-xs" />
                     <textarea rows={2} placeholder="Descripción" value={square.desc} onChange={(e) => handleInfoSquareChange(idx, 'desc', e.target.value)} className="w-full bg-black border border-[#333] p-2 text-white text-[10px]" />
                     <select value={square.bgColor || 'bg-gray-950'} onChange={(e) => handleInfoSquareChange(idx, 'bgColor', e.target.value)} className="w-full bg-black border border-[#333] p-2 text-white text-xs">
-                        <option value="bg-gray-950">Gris Muy Oscuro (bg-gray-950)</option>
-                        <option value="bg-black">Negro (bg-black)</option>
-                        <option value="bg-gray-900">Gris Oscuro (bg-gray-900)</option>
+                      <option value="bg-gray-950">Gris Muy Oscuro (bg-gray-950)</option>
+                      <option value="bg-black">Negro (bg-black)</option>
+                      <option value="bg-gray-900">Gris Oscuro (bg-gray-900)</option>
                     </select>
                   </div>
                 ))}
@@ -501,10 +582,10 @@ function EditorContent() {
               <div className="space-y-6">
                 <h3 className="text-white border-b border-[#333] pb-2 text-xs">PÁGINA VIP SECRETA</h3>
                 <p className="text-[10px] text-[#888] mb-4">Esta información solo será visible para quienes escaneen el QR de su invitación o entren con su enlace único.</p>
-                
+
                 <input type="text" value={content.title || ''} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Título del Evento (Ej: CÁPSULA 002 EXCLUSIVO)" />
                 <input type="text" value={content.dateText || ''} onChange={(e) => handleChange('dateText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Fecha y Hora (Ej: JUEVES 23 - 22:00 HRS)" />
-                
+
                 <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 1: BIENVENIDA (IZQ FOTO, DER TEXTO)</h3>
                 <div className="mb-4">
                   <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Imagen de Bienvenida (Cuadrada ideal)</label>
@@ -532,10 +613,10 @@ function EditorContent() {
               <div className="space-y-6">
                 <h3 className="text-white border-b border-[#333] pb-2 text-xs">PÁGINA GANADORES SECRETA</h3>
                 <p className="text-[10px] text-[#888] mb-4">Esta información solo será visible para quienes escaneen el QR de su invitación de concurso o entren con su enlace único.</p>
-                
+
                 <input type="text" value={content.title || ''} onChange={(e) => handleChange('title', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Título del Evento (Ej: GANADOR CÁPSULA 002)" />
                 <input type="text" value={content.dateText || ''} onChange={(e) => handleChange('dateText', e.target.value)} className="w-full bg-black border border-[#333] p-3 text-white text-xs mb-2" placeholder="Fecha y Hora (Ej: JUEVES 23 - 22:00 HRS)" />
-                
+
                 <h3 className="text-white border-b border-[#333] pb-2 text-xs mt-6">SECCIÓN 1: BIENVENIDA (IZQ FOTO, DER TEXTO)</h3>
                 <div className="mb-4">
                   <label className="text-[10px] text-white uppercase tracking-widest block mb-1">Imagen de Bienvenida (Cuadrada ideal)</label>
