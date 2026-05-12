@@ -131,13 +131,14 @@ function EditorContent() {
 
     let processedFile = file;
 
-    // Si pesa más de ~8MB y es imagen, intenta comprimir
-    if (file.type.startsWith('image/') && file.size > 8 * 1024 * 1024) {
+    // Vercel Serverless Functions tienen un límite de payload de 4.5MB.
+    // Si pesa más de ~3.5MB y es imagen, intenta comprimir
+    if (file.type.startsWith('image/') && file.size > 3.5 * 1024 * 1024) {
       try {
         console.log(`Comprimiendo ${file.name}...`);
         const options = {
-          maxSizeMB: 8,
-          maxWidthOrHeight: 3000,
+          maxSizeMB: 3.5,
+          maxWidthOrHeight: 1920,
           useWebWorker: true
         };
         processedFile = await imageCompression(file, options);
@@ -149,8 +150,8 @@ function EditorContent() {
 
     // Solo restringir tamaño para imágenes, no para videos
     if (file.type.startsWith('image/')) {
-      if (processedFile.size > 10485760) {
-        alert(`❌ EL ARCHIVO "${processedFile.name}" ES DEMASIADO GRANDE INCLUSO TRAS INTENTAR COMPRIMIR. Pesa ${(processedFile.size / 1048576).toFixed(2)} MB, y el límite del servidor es 10 MB. ¡Por favor comprímelo manualmente!`);
+      if (processedFile.size > 4.2 * 1024 * 1024) {
+        alert(`❌ EL ARCHIVO "${processedFile.name}" ES DEMASIADO GRANDE INCLUSO TRAS COMPRIMIR. Pesa ${(processedFile.size / 1048576).toFixed(2)} MB, y el límite en Vercel es 4.5 MB. ¡Por favor comprímelo manualmente a menos de 4MB!`);
         if (eventTarget) eventTarget.value = '';
         return;
       }
