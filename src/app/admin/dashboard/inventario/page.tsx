@@ -173,30 +173,30 @@ export default function InventarioPage() {
 
                             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                                 <div>
-                                    <label className="text-xs uppercase font-mono text-[#888] tracking-widest">Fotografía (1 Principal)</label>
+                                    <label htmlFor="imageUpload" className="text-xs uppercase font-mono text-[#888] tracking-widest">Fotografía (1 Principal)</label>
                                     {imageUrl && <img src={imageUrl} alt="preview" className="w-full h-32 object-contain bg-[#111] border border-[#333] mb-2" />}
-                                    <input type="file" accept="image/*" onChange={handleImageChange} className="w-full text-xs text-[#888] font-mono file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-mono file:bg-white file:text-black cursor-pointer" />
+                                    <input id="imageUpload" name="imageUpload" type="file" accept="image/*" onChange={handleImageChange} className="w-full text-xs text-[#888] font-mono file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-mono file:bg-white file:text-black cursor-pointer" />
                                 </div>
 
                                 <div>
-                                    <label className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Nombre</label>
-                                    <input required value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
+                                    <label htmlFor="title" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Nombre</label>
+                                    <input id="title" name="title" required value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
                                 </div>
 
                                 <div className="flex gap-4">
                                     <div className="flex-1">
-                                        <label className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Precio (CLP)</label>
-                                        <input required type="number" min="0" value={price} onChange={e => setPrice(Number(e.target.value))} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
+                                        <label htmlFor="price" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Precio (CLP)</label>
+                                        <input id="price" name="price" required type="number" min="0" value={price} onChange={e => setPrice(Number(e.target.value))} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Stock</label>
-                                        <input required type="number" min="0" value={stock} onChange={e => setStock(Number(e.target.value))} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
+                                        <label htmlFor="stock" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Stock</label>
+                                        <input id="stock" name="stock" required type="number" min="0" value={stock} onChange={e => setStock(Number(e.target.value))} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Categoría</label>
-                                    <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm">
+                                    <label htmlFor="category" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Categoría</label>
+                                    <select id="category" name="category" value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm">
                                         <option>Ropa</option>
                                         <option>Accesorios</option>
                                         <option>Merch Audio</option>
@@ -205,13 +205,13 @@ export default function InventarioPage() {
                                 </div>
 
                                 <div>
-                                    <label className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Tallas (Separadas por comas)</label>
-                                    <input placeholder="Ej: S, M, L, XL" value={sizes} onChange={e => setSizes(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
+                                    <label htmlFor="sizes" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Tallas (Separadas por comas)</label>
+                                    <input id="sizes" name="sizes" placeholder="Ej: S, M, L, XL" value={sizes} onChange={e => setSizes(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
                                 </div>
 
                                 <div>
-                                    <label className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Descripción Corta</label>
-                                    <textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
+                                    <label htmlFor="description" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Descripción Corta</label>
+                                    <textarea id="description" name="description" rows={3} value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
                                 </div>
 
                                 <div className="flex gap-4 mt-4">
