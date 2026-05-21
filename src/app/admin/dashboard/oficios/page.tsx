@@ -67,12 +67,39 @@ export default function OficiosAdminPage() {
         setImages(prev => prev.filter((_, i) => i !== index))
     }
 
+    // Comprimir imagen en el navegador antes de subirla (evita el límite de 4.5MB de Vercel)
+    const compressImage = (blobUrl: string, maxWidth = 2000, quality = 0.8): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const img = document.createElement('img')
+            img.onload = () => {
+                const canvas = document.createElement('canvas')
+                let w = img.width
+                let h = img.height
+                if (w > maxWidth) {
+                    h = Math.round((h * maxWidth) / w)
+                    w = maxWidth
+                }
+                canvas.width = w
+                canvas.height = h
+                const ctx = canvas.getContext('2d')
+                if (!ctx) return reject(new Error('No canvas context'))
+                ctx.drawImage(img, 0, 0, w, h)
+                canvas.toBlob(
+                    (blob) => blob ? resolve(blob) : reject(new Error('Compression failed')),
+                    'image/jpeg',
+                    quality
+                )
+            }
+            img.onerror = reject
+            img.src = blobUrl
+        })
+    }
+
     const uploadIfBlob = async (url: string) => {
         if (!url || !url.startsWith('blob:')) return url
-        const res = await fetch(url)
-        const blob = await res.blob()
+        const compressed = await compressImage(url)
         const formData = new FormData()
-        formData.append('file', blob, 'taller-zero-oficio.' + (blob.type.split('/')[1] || 'bin'))
+        formData.append('file', compressed, 'taller-zero-oficio.jpg')
 
         const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
         if (!uploadRes.ok) {
