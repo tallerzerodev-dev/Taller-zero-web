@@ -59,7 +59,7 @@ export default function OficiosGallery({ oficios }: { oficios: Oficio[] }) {
                         <FadeIn key={oficio.id}>
                             <motion.div
                                 layoutId={`card-${oficio.id}`}
-                                className="group relative aspect-[4/5] cursor-pointer overflow-hidden border border-[#222] bg-[#111] hover:border-[#666] transition-colors duration-500"
+                                className="group relative aspect-[4/5] cursor-pointer overflow-hidden border border-[#222] bg-transparent hover:border-[#666] transition-colors duration-500"
                                 onClick={() => setSelectedOficio(oficio)}
                             >
                                 {oficio.coverImage ? (
@@ -69,7 +69,7 @@ export default function OficiosGallery({ oficios }: { oficios: Oficio[] }) {
                                             alt={oficio.name}
                                             fill
                                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                            className="object-contain p-6 group-hover:scale-105 transition-transform duration-700"
+                                            className="object-contain group-hover:scale-105 transition-transform duration-700"
                                         />
                                     </motion.div>
                                 ) : (
@@ -124,7 +124,7 @@ export default function OficiosGallery({ oficios }: { oficios: Oficio[] }) {
                                                     alt={selectedOficio.name}
                                                     fill
                                                     sizes="(max-width: 768px) 100vw, 50vw"
-                                                    className="object-contain p-8"
+                                                    className="object-contain group-hover:scale-105 transition-transform duration-700"
                                                 />
                                             </motion.div>
                                         ) : (
