@@ -12,6 +12,7 @@ const ProductSchema = z.object({
     category: z.string().default("Ropa"),
     stock: z.union([z.string(), z.number()]).transform(v => Number(v)).refine(n => !isNaN(n) && n >= 0, "Stock cannot be negative"),
     sizes: z.array(z.string()).default([]),
+    colors: z.array(z.string()).default([]),
     images: z.array(z.string().url()).default([]),
     isAvailable: z.boolean().default(true),
 })
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
                 category: data.category,
                 stock: data.stock,
                 sizes: data.sizes,
+                colors: data.colors,
                 images: data.images,
                 isAvailable: data.isAvailable
             }
@@ -80,6 +82,7 @@ export async function PUT(req: Request) {
                 category: data.category,
                 stock: data.stock,
                 sizes: data.sizes,
+                colors: data.colors,
                 images: data.images,
                 isAvailable: data.isAvailable
             }

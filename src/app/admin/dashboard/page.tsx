@@ -101,6 +101,14 @@ export default function AdminDashboardPage() {
             </FadeIn>
           </Link>
 
+          <Link href="/admin/dashboard/oficios" className="block">
+            <FadeIn className="bg-[#0a0a0a] border border-[#222222] p-8 hover:border-white transition-colors group cursor-pointer flex flex-col h-full">
+              <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-white">Editar Oficios</h2>
+              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Añade o edita a los colaboradores y oficios que participan en Taller Zero.</p>
+              <span className="text-white font-mono text-xs uppercase tracking-widest border-b border-white pb-1 w-fit">Gestor →</span>
+            </FadeIn>
+          </Link>
+
           <Link href="/admin/dashboard/editor?page=vip" className="block">
             <FadeIn className="bg-[#1a0000] border border-red-900 p-8 hover:border-red-500 transition-colors group cursor-pointer flex flex-col h-full shadow-[0_0_15px_rgba(220,38,38,0.1)]">
               <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-red-500">Página VIP</h2>

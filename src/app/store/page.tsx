@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import Image from 'next/image'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 import { prisma } from '@/lib/prisma'
@@ -80,7 +80,7 @@ export default async function StorePage({ searchParams }: { searchParams: { cate
                                                 src={product.images[0]}
                                                 alt={product.title}
                                                 fill
-                                                className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${!product.isAvailable ? 'grayscale opacity-30 shadow-inner' : 'opacity-90 group-hover:opacity-100'}`}
+                                                className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${!product.isAvailable ? 'grayscale opacity-30 shadow-inner' : ''}`}
                                             />
                                         ) : (
                                             <div className="font-mono text-[#333] text-xs uppercase tracking-widest">Sin foto</div>

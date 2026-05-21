@@ -15,6 +15,7 @@ interface Product {
     stock: number
     views: number
     sizes: string[]
+    colors: string[]
 }
 
 export default function InventarioPage() {
@@ -29,7 +30,8 @@ export default function InventarioPage() {
     const [category, setCategory] = useState('Ropa')
     const [stock, setStock] = useState(0)
     const [sizes, setSizes] = useState('')
-    const [imageUrl, setImageUrl] = useState('')
+    const [colors, setColors] = useState('')
+    const [imageUrls, setImageUrls] = useState<string[]>([])
 
     const fetchProducts = async () => {
         try {
@@ -48,11 +50,17 @@ export default function InventarioPage() {
     }, [])
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
-            const tempUrl = URL.createObjectURL(file)
-            setImageUrl(tempUrl)
+        const files = Array.from(e.target.files || [])
+        if (files.length > 0) {
+            const newUrls = files.map(file => URL.createObjectURL(file))
+            setImageUrls(prev => [...prev, ...newUrls].slice(0, 6))
         }
+        // Reset input value so the same file can be selected again if removed
+        e.target.value = ''
+    }
+
+    const removeImage = (index: number) => {
+        setImageUrls(prev => prev.filter((_, i) => i !== index))
     }
 
     const uploadIfBlob = async (url: string) => {
@@ -75,7 +83,9 @@ export default function InventarioPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         try {
-            const finalImage = await uploadIfBlob(imageUrl)
+            const finalImages = await Promise.all(
+                imageUrls.map(url => uploadIfBlob(url))
+            )
             const payload = {
                 id: editing?.id,
                 title,
@@ -84,7 +94,8 @@ export default function InventarioPage() {
                 category,
                 stock,
                 sizes: sizes.split(',').map(s => s.trim()).filter(Boolean),
-                images: finalImage ? [finalImage] : [],
+                colors: colors.split(',').map(s => s.trim()).filter(Boolean),
+                images: finalImages,
                 isAvailable: stock > 0
             }
 
@@ -109,13 +120,14 @@ export default function InventarioPage() {
         setDescription(p.description || '')
         setCategory(p.category)
         setStock(p.stock)
-        setSizes(p.sizes.join(', '))
-        setImageUrl(p.images[0] || '')
+        setSizes(p.sizes?.join(', ') || '')
+        setColors(p.colors?.join(', ') || '')
+        setImageUrls(p.images || [])
     }
 
     const resetForm = () => {
         setEditing(null)
-        setTitle(''); setPrice(0); setDescription(''); setCategory('Ropa'); setStock(0); setSizes(''); setImageUrl('')
+        setTitle(''); setPrice(0); setDescription(''); setCategory('Ropa'); setStock(0); setSizes(''); setColors(''); setImageUrls([])
     }
 
     const deleteProduct = async (id: string) => {
@@ -173,9 +185,25 @@ export default function InventarioPage() {
 
                             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                                 <div>
-                                    <label htmlFor="imageUpload" className="text-xs uppercase font-mono text-[#888] tracking-widest">Fotografía (1 Principal)</label>
-                                    {imageUrl && <img src={imageUrl} alt="preview" className="w-full h-32 object-contain bg-[#111] border border-[#333] mb-2" />}
-                                    <input id="imageUpload" name="imageUpload" type="file" accept="image/*" onChange={handleImageChange} className="w-full text-xs text-[#888] font-mono file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-mono file:bg-white file:text-black cursor-pointer" />
+                                    <label htmlFor="imageUpload" className="text-xs uppercase font-mono text-[#888] tracking-widest flex justify-between">
+                                        <span>Fotografía (Hasta 6)</span>
+                                        <span>{imageUrls.length}/6</span>
+                                    </label>
+                                    
+                                    {imageUrls.length > 0 && (
+                                        <div className="grid grid-cols-3 gap-2 mt-2 mb-2">
+                                            {imageUrls.map((url, i) => (
+                                                <div key={i} className="relative group aspect-square bg-[#111] border border-[#333]">
+                                                    <img src={url} alt={`preview-${i}`} className="w-full h-full object-cover" />
+                                                    <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-black/80 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {imageUrls.length < 6 && (
+                                        <input id="imageUpload" name="imageUpload" type="file" accept="image/*" multiple onChange={handleImageChange} className="w-full text-xs text-[#888] font-mono file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-mono file:bg-white file:text-black cursor-pointer mt-2" />
+                                    )}
                                 </div>
 
                                 <div>
@@ -207,6 +235,11 @@ export default function InventarioPage() {
                                 <div>
                                     <label htmlFor="sizes" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Tallas (Separadas por comas)</label>
                                     <input id="sizes" name="sizes" placeholder="Ej: S, M, L, XL" value={sizes} onChange={e => setSizes(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="colors" className="text-xs uppercase font-mono text-[#888] tracking-widest block mb-1">Colores (Separados por comas)</label>
+                                    <input id="colors" name="colors" placeholder="Ej: Negro, Blanco, Rojo" value={colors} onChange={e => setColors(e.target.value)} className="w-full bg-[#111] border border-[#333] text-white p-2 font-mono text-sm" />
                                 </div>
 
                                 <div>

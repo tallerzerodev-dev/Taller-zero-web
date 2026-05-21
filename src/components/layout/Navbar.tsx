@@ -46,6 +46,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
                 <div className="hidden md:flex items-center gap-8 font-mono text-sm tracking-widest uppercase">
                     <Link href="/sessions" className="hover:text-gray-400 transition-colors">Sesiones</Link>
                     <Link href="/galeria" className="hover:text-gray-400 transition-colors">Galería</Link>
+                    <Link href="/oficios" className="hover:text-gray-400 transition-colors">Oficios</Link>
                     {storeEnabled && <Link href="/store" className="hover:text-gray-400 transition-colors">Tienda</Link>}
                     <Link href="/about" className="hover:text-gray-400 transition-colors">About</Link>
                     {storeEnabled && (
@@ -93,6 +94,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
                 <div className="md:hidden border-t-2 border-gray-800 bg-black absolute w-full left-0 top-20 flex flex-col font-mono text-lg uppercase tracking-widest">
                     <Link href="/sessions" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Sesiones</Link>
                     <Link href="/galeria" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Galería</Link>
+                    <Link href="/oficios" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Oficios</Link>
                     {storeEnabled && <Link href="/store" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Tienda</Link>}
                     <Link href="/about" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">About</Link>
                     {storeEnabled && <Link href="/cart" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900 flex justify-between">Carrito <span className="bg-white text-black px-2 py-0.5 text-xs font-bold">{cartCount}</span></Link>}

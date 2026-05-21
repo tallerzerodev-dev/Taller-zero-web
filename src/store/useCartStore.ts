@@ -8,6 +8,7 @@ export interface CartItem {
     image: string
     category: string
     size?: string // For products with multiple sizes
+    color?: string // For products with multiple colors
     quantity: number
     maxStock: number
 }
@@ -15,8 +16,8 @@ export interface CartItem {
 interface CartStore {
     items: CartItem[]
     addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void
-    removeItem: (id: string, size?: string) => void
-    updateQuantity: (id: string, size: string | undefined, delta: number) => void
+    removeItem: (id: string, size?: string, color?: string) => void
+    updateQuantity: (id: string, size: string | undefined, color: string | undefined, delta: number) => void
     clearCart: () => void
     totalItems: () => number
     totalPrice: () => number
@@ -30,7 +31,7 @@ export const useCartStore = create<CartStore>()(
             addItem: (newItem) => {
                 set((state) => {
                     const existingItemIndex = state.items.findIndex(
-                        (i) => i.id === newItem.id && i.size === newItem.size
+                        (i) => i.id === newItem.id && i.size === newItem.size && i.color === newItem.color
                     )
 
                     if (existingItemIndex >= 0) {
@@ -49,17 +50,17 @@ export const useCartStore = create<CartStore>()(
                 })
             },
 
-            removeItem: (id, size) => {
+            removeItem: (id, size, color) => {
                 set((state) => ({
-                    items: state.items.filter((i) => !(i.id === id && i.size === size)),
+                    items: state.items.filter((i) => !(i.id === id && i.size === size && i.color === color)),
                 }))
             },
 
-            updateQuantity: (id, size, delta) => {
+            updateQuantity: (id, size, color, delta) => {
                 set((state) => {
                     return {
                         items: state.items.map((item) => {
-                            if (item.id === id && item.size === size) {
+                            if (item.id === id && item.size === size && item.color === color) {
                                 const newQuantity = Math.max(1, Math.min(item.quantity + delta, item.maxStock))
                                 return { ...item, quantity: newQuantity }
                             }

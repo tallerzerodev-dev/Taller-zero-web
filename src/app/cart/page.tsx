@@ -43,13 +43,13 @@ export default function CartPage() {
                         ) : (
                             <div className="flex flex-col gap-8">
                                 {items.map((item) => (
-                                    <div key={`${item.id}-${item.size}`} className="flex gap-6 border-b border-gray-800 pb-8 group">
+                                    <div key={`${item.id}-${item.size}-${item.color}`} className="flex gap-6 border-b border-gray-800 pb-8 group">
                                         <Link href={`/store/${item.id}`} className="w-full max-w-[24px] md:max-w-[32px] aspect-[3/4] relative bg-gray-900 border border-gray-800 shrink-0 overflow-hidden">
                                             <Image
                                                 src={item.image}
                                                 alt={item.title}
                                                 fill
-                                                className="object-cover object-center grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-500"
+                                                className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
                                             />
                                         </Link>
 
@@ -61,17 +61,18 @@ export default function CartPage() {
                                                             {item.title}
                                                         </h3>
                                                     </Link>
-                                                    <button onClick={() => removeItem(item.id, item.size)} className="text-gray-600 hover:text-white transition-colors" title="Eliminar artículo">✕</button>
+                                                    <button onClick={() => removeItem(item.id, item.size, item.color)} className="text-gray-600 hover:text-white transition-colors" title="Eliminar artículo">✕</button>
                                                 </div>
                                                 {item.size && <p className="text-sm text-gray-500 mb-1">Talla: {item.size}</p>}
+                                                {item.color && <p className="text-sm text-gray-500 mb-1">Color: {item.color}</p>}
                                                 <p className="text-sm text-gray-500">Categoria: {item.category}</p>
                                             </div>
 
                                             <div className="flex justify-between items-end mt-4">
                                                 <div className="flex items-center gap-4">
-                                                    <button disabled={item.quantity <= 1} onClick={() => updateQuantity(item.id, item.size, -1)} className="border border-gray-600 hover:border-white w-8 h-8 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed">-</button>
+                                                    <button disabled={item.quantity <= 1} onClick={() => updateQuantity(item.id, item.size, item.color, -1)} className="border border-gray-600 hover:border-white w-8 h-8 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed">-</button>
                                                     <span className="text-white">{item.quantity}</span>
-                                                    <button disabled={item.quantity >= item.maxStock} onClick={() => updateQuantity(item.id, item.size, 1)} className="border border-gray-600 hover:border-white w-8 h-8 flex items-center justify-center transition-colors disabled:opacity-50">+</button>
+                                                    <button disabled={item.quantity >= item.maxStock} onClick={() => updateQuantity(item.id, item.size, item.color, 1)} className="border border-gray-600 hover:border-white w-8 h-8 flex items-center justify-center transition-colors disabled:opacity-50">+</button>
                                                 </div>
                                                 <p className="text-gray-300 text-lg">${item.price.toLocaleString('es-CL')}</p>
                                             </div>

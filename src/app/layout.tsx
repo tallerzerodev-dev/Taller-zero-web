@@ -86,7 +86,7 @@ export default async function RootLayout({
         <Providers>
           <Noise />
           <Navbar storeEnabled={homeData?.storeEnabled || false} />
-          <div className="pt-20 flex-1 flex flex-col z-10 w-full">
+          <div className="pt-20 flex-1 flex flex-col w-full">
             {children}
             <Analytics />
           </div>

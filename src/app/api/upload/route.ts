@@ -24,8 +24,10 @@ export async function POST(request: Request) {
     }
 
     // 2. Validar tipo de archivo (solo imágenes y videos)
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/quicktime'];
-    if (!allowedMimeTypes.includes(file.type)) {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/quicktime', 'application/octet-stream'];
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo && !allowedMimeTypes.includes(file.type)) {
       return NextResponse.json({ error: 'Tipo de archivo no soportado. Solo JPG, PNG, WEBP, GIF, MP4 y MOV.' }, { status: 415 });
     }
 
@@ -53,6 +55,6 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('Error subiendo archivo a Cloudinary:', error);
-    return NextResponse.json({ error: 'Fallo la subida del archivo' }, { status: 500 });
+    return NextResponse.json({ error: 'Fallo la subida del archivo', details: String(error) }, { status: 500 });
   }
 }

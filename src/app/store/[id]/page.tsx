@@ -28,35 +28,40 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                     <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
                         {/* Izquierda: Imagen Principal */}
                         <div className="w-full lg:w-1/2 relative">
-                            <div className="lg:sticky lg:top-24">
-                                <Link href="/store" className="font-mono text-[10px] text-[#555] hover:text-white uppercase tracking-[0.3em] font-bold mb-8 inline-block transition-colors">
+                            <div className="flex flex-col gap-4">
+                                <Link href="/store" className="font-mono text-[10px] text-[#555] hover:text-white uppercase tracking-[0.3em] font-bold mb-4 inline-block transition-colors">
                                     <span className="mr-2">←</span> VOLVER A LA TIENDA
                                 </Link>
 
-                                <div className="w-full relative aspect-[4/5] bg-[#111] border border-[#333] flex items-center justify-center p-8 mt-2">
-                                    {!product.isAvailable && (
-                                        <div className="absolute top-4 right-4 z-20 bg-red-600 text-white font-mono text-[10px] font-bold px-4 py-2 tracking-[0.3em] uppercase shadow-lg">
-                                            AGOTADO
+                                {product.images.length > 0 ? (
+                                    product.images.map((img, idx) => (
+                                        <div key={idx} className="w-full relative aspect-[4/5] bg-[#111] border border-[#333] flex items-center justify-center p-8">
+                                            {!product.isAvailable && idx === 0 && (
+                                                <div className="absolute top-4 right-4 z-20 bg-red-600 text-white font-mono text-[10px] font-bold px-4 py-2 tracking-[0.3em] uppercase shadow-lg">
+                                                    AGOTADO
+                                                </div>
+                                            )}
+                                            <Image
+                                                src={img}
+                                                alt={`${product.title} - Vista ${idx + 1}`}
+                                                fill
+                                                priority={idx === 0}
+                                                className={`object-cover object-center ${!product.isAvailable ? 'grayscale opacity-30 shadow-inner' : ''}`}
+                                            />
                                         </div>
-                                    )}
-                                    {product.images[0] ? (
-                                        <Image
-                                            src={product.images[0]}
-                                            alt={product.title}
-                                            fill
-                                            priority
-                                            className={`Object-cover object-center ${product.isAvailable ? 'grayscale opacity-40' : ''}`}
-                                        />
-                                    ) : (
+                                    ))
+                                ) : (
+                                    <div className="w-full relative aspect-[4/5] bg-[#111] border border-[#333] flex items-center justify-center p-8 mt-2">
                                         <span className="font-mono text-[#333] text-sm uppercase tracking-widest">Sin imagen</span>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         {/* Derecha: Detalles del Producto */}
-                        <div className="w-full lg:w-1/2 flex flex-col pt-4 lg:pt-[104px]">
-                            <div className="border-b border-[#333] pb-8 mb-8">
+                        <div className="w-full lg:w-1/2 flex flex-col">
+                            <div className="lg:sticky lg:top-24 pt-4 lg:pt-[104px]">
+                                <div className="border-b border-[#333] pb-8 mb-8">
                                 <span className="font-mono text-[10px] uppercase text-[#666] tracking-[0.3em] mb-4 block">{`///`} {product.category}</span>
                                 <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter text-white leading-[0.9] mb-4">
                                     {product.title}
@@ -73,7 +78,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                                 </div>
                             </div>
 
-                            <AddToCartPanel product={product} />
+                                <AddToCartPanel product={product as any} />
+                            </div>
                         </div>
                     </div>
                 </FadeIn>

@@ -11,6 +11,7 @@ interface AddToCartPanelProps {
         images: string[]
         category: string
         sizes: string[]
+        colors?: string[]
         isAvailable: boolean
         stock: number
     }
@@ -18,14 +19,20 @@ interface AddToCartPanelProps {
 
 export function AddToCartPanel({ product }: AddToCartPanelProps) {
     const [selectedSize, setSelectedSize] = useState<string | null>(null)
+    const [selectedColor, setSelectedColor] = useState<string | null>(null)
     const addItem = useCartStore(state => state.addItem)
 
-    const needsSize = product.sizes.length > 0
+    const needsSize = product.sizes && product.sizes.length > 0
+    const needsColor = product.colors && product.colors.length > 0
     const canAddToCart = product.isAvailable && product.stock > 0
 
     const handleAddToCart = () => {
         if (needsSize && !selectedSize) {
             alert('Por favor selecciona una talla antes de añadir a tu orden.')
+            return
+        }
+        if (needsColor && !selectedColor) {
+            alert('Por favor selecciona un color antes de añadir a tu orden.')
             return
         }
 
@@ -36,10 +43,11 @@ export function AddToCartPanel({ product }: AddToCartPanelProps) {
             image: product.images[0] || '',
             category: product.category,
             size: selectedSize || undefined,
+            color: selectedColor || undefined,
             maxStock: product.stock
-        })
+        } as any)
 
-        alert(`${product.title} ${selectedSize ? `(Talla ${selectedSize})` : ''} añadido al carrito.`)
+        alert(`${product.title} ${selectedSize ? `(Talla ${selectedSize})` : ''} ${selectedColor ? `(Color ${selectedColor})` : ''} añadido al carrito.`)
     }
 
     return (
@@ -62,6 +70,29 @@ export function AddToCartPanel({ product }: AddToCartPanelProps) {
                                     }`}
                             >
                                 {size}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Selector de Colores */}
+            {needsColor && (
+                <div className="mb-12">
+                    <div className="flex justify-between items-end mb-4">
+                        <h3 className="font-mono text-[#555] uppercase text-xs tracking-[0.3em] font-bold">COLOR</h3>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {product.colors!.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => setSelectedColor(color)}
+                                className={`py-4 font-mono text-sm uppercase tracking-widest border transition-all ${selectedColor === color
+                                    ? 'border-white text-white bg-white/10'
+                                    : 'border-[#333] text-[#888] hover:border-[#666] hover:text-white bg-transparent'
+                                    }`}
+                            >
+                                {color}
                             </button>
                         ))}
                     </div>

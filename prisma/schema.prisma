@@ -130,7 +130,7 @@ model Product {
   views       Int      @default(0) // Analytics: Producto más visitado
 
   sizes       String[] @default([]) // Ej: ["S", "M", "L", "XL"]
-
+  colors      String[] @default([]) // Ej: ["Negro", "Blanco"]
   orderItems  OrderItem[]
 
   createdAt   DateTime @default(now())
@@ -236,6 +236,24 @@ model Invitation {
   isScanned   Boolean  @default(false)
   scannedAt   DateTime?
   eventDate   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==========================================
+// 6. OFICIOS Y COLABORADORES
+// ==========================================
+
+model Oficio {
+  id          String   @id @default(cuid())
+  name        String
+  coverImage  String?
+  bio         String?  @db.Text
+  images      String[] @default([]) // Mini-galería de actuaciones
+  instagram   String?
+  email       String?
+  phone       String?
+  address     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
