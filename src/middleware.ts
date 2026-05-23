@@ -5,12 +5,13 @@ import type { NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl
 
-    // 1. Lógica de Modo Mantenimiento
+    // 1. Lógica de Modo Mantenimiento (solo para la tienda)
     const isMaintenanceMode = process.env.MAINTENANCE_MODE === 'true'
+    const isStoreRoute = pathname.startsWith('/store') || pathname.startsWith('/cart') || pathname.startsWith('/checkout')
     
-    // Configurar cookie de bypass si se visita la URL secreta: /?bypass=tallerzero
+    // Configurar cookie de bypass si se visita la URL secreta: /store?bypass=tallerzero
     if (searchParams.get('bypass') === 'tallerzero') {
-        const response = NextResponse.redirect(new URL('/', request.url))
+        const response = NextResponse.redirect(new URL(pathname, request.url))
         response.cookies.set('maintenance_bypass', 'true', { path: '/', maxAge: 60 * 60 * 24 })
         return response
     }
@@ -18,12 +19,12 @@ export async function middleware(request: NextRequest) {
     const hasBypassCookie = request.cookies.has('maintenance_bypass')
     const isMaintenancePage = pathname === '/maintenance'
 
-    // Si está en mantenimiento, no tiene la cookie y no está ya en la página de mantenimiento -> Redirigir
-    if (isMaintenanceMode && !hasBypassCookie && !isMaintenancePage && !pathname.startsWith('/api/webhooks')) {
+    // Solo redirigir a mantenimiento si es ruta de tienda
+    if (isMaintenanceMode && !hasBypassCookie && isStoreRoute) {
         return NextResponse.redirect(new URL('/maintenance', request.url))
     }
 
-    // Si NO está en mantenimiento (o tiene cookie) pero intenta ir a la página de mantenimiento -> Redirigir al home
+    // Si NO está en mantenimiento pero intenta ir a /maintenance -> Redirigir al home
     if ((!isMaintenanceMode || hasBypassCookie) && isMaintenancePage) {
         return NextResponse.redirect(new URL('/', request.url))
     }
