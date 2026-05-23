@@ -145,6 +145,9 @@ model Order {
   shippingAddress String?  @db.Text
   status          String   @default("PENDING") // PENDING, PAID, SHIPPED, DELIVERED, CANCELLED
   totalAmount     Int
+  
+  trackingNumber  String?
+  trackingCompany String?  // e.g. Starken, Chilexpress, BlueExpress
 
   items           OrderItem[]
 

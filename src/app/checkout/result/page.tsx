@@ -1,69 +1,40 @@
 import { prisma } from '@/lib/prisma';
-import crypto from 'crypto';
 import Link from 'next/link';
+import ClearCartOnSuccess from './ClearCartOnSuccess';
 
-function signParams(params: Record<string, any>, secretKey: string) {
-    const keys = Object.keys(params).sort();
-    let toSign = '';
-    for (const key of keys) {
-        toSign += key + params[key];
+export default async function CheckoutResultPage({ searchParams }: { searchParams: { collection_id?: string; status?: string; external_reference?: string; payment_id?: string } }) {
+    const { status, external_reference, collection_id, payment_id } = searchParams;
+    const isSuccess = status === 'approved';
+    const orderId = external_reference || '';
+
+    // Si tenemos orderId y status, podemos actualizar la base de datos (idealmente esto se hace vía Webhook para ser 100% seguro)
+    if (orderId && isSuccess) {
+        try {
+            await prisma.order.update({
+                where: { id: orderId },
+                data: { status: 'PAID' }
+            });
+        } catch (error) {
+            console.error('Error updating order status in Result Page', error);
+        }
     }
-    return crypto.createHmac('sha256', secretKey).update(toSign).digest('hex');
-}
 
-export default async function CheckoutResultPage({ searchParams }: { searchParams: { token?: string } }) {
-    const token = searchParams.token;
-
-    if (!token) {
+    if (!status) {
         return (
-            <main className="flex-1 flex items-center justify-center bg-black min-h-screen px-6">
+            <main className="flex-1 flex flex-col items-center justify-center bg-black min-h-screen px-6">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold uppercase tracking-widest text-red-500 mb-4">Error de Pago</h1>
-                    <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">No se recibió el token de la transacción.</p>
+                    <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-4">No se recibió información de la transacción.</p>
+                    <p className="text-[#555] font-mono text-[10px] break-all max-w-lg mx-auto mb-8 bg-[#111] p-2">Debug Data: {JSON.stringify(searchParams)}</p>
                     <Link href="/store" className="text-xs px-6 py-3 border border-white text-white font-mono uppercase hover:bg-white hover:text-black transition-colors">Volver a la tienda</Link>
                 </div>
             </main>
         );
     }
 
-    const apiKey = process.env.FLOW_API_KEY || '';
-    const secretKey = process.env.FLOW_SECRET_KEY || '';
-
-    let status = 'PENDING';
-    let orderId = '';
-    let isSuccess = false;
-
-    if (apiKey && secretKey) {
-        try {
-            const params = { apiKey, token };
-            const s = signParams(params, secretKey);
-            const payload = { ...params, s };
-
-            const flowRes = await fetch(`https://sandbox.flow.cl/api/payment/getStatus?${new URLSearchParams(payload as any).toString()}`, {
-                method: 'GET',
-                // Avoid caching the API response in Next.js
-                cache: 'no-store'
-            });
-
-            const flowData = await flowRes.json();
-            
-            if (flowRes.ok) {
-                orderId = flowData.commerceOrder;
-                // status = 2 is PAID in Flow
-                if (flowData.status === 2) {
-                    isSuccess = true;
-                    status = 'PAID';
-                } else if (flowData.status === 3 || flowData.status === 4) {
-                    status = 'CANCELLED';
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching Flow status', error);
-        }
-    }
-
     return (
         <main className="flex-1 flex items-center justify-center bg-black min-h-screen px-6">
+            {isSuccess && <ClearCartOnSuccess />}
             <div className="max-w-md w-full border border-[#333] p-8 bg-[#0a0a0a] text-center">
                 {isSuccess ? (
                     <>
@@ -83,7 +54,7 @@ export default async function CheckoutResultPage({ searchParams }: { searchParam
                 ) : (
                     <>
                         <h1 className="text-3xl font-bold uppercase tracking-widest text-red-500 mb-2">Pago No Completado</h1>
-                        <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">Hubo un problema con tu pago o fue cancelado.</p>
+                        <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">Hubo un problema con tu pago o fue rechazado.</p>
                         <div className="mb-8">
                             <span className="inline-block p-4 bg-[#111] border border-red-900/30">
                                 <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -2,17 +2,25 @@
 
 import Link from 'next/link';
 import { FadeIn } from '@/components/ui/Animations';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useCartStore } from '@/store/useCartStore';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 
 export default function CheckoutPage() {
     const formRef = useRef<HTMLFormElement>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [preferenceId, setPreferenceId] = useState<string | null>(null);
     const [envioTipo, setEnvioTipo] = useState<'region' | 'rm' | 'retiro'>('region');
     const [modoCompra, setModoCompra] = useState<'guest' | 'login'>('guest');
     const cartItems = useCartStore(state => state.items);
-    const clearCart = useCartStore(state => state.clearCart);
+
+    useEffect(() => {
+        const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY_TEST || '';
+        if (publicKey) {
+            initMercadoPago(publicKey, { locale: 'es-CL' });
+        }
+    }, []);
 
     // Calcular totales reales desde el carrito
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -31,7 +39,7 @@ export default function CheckoutPage() {
     }
     const total = subtotal + envio;
 
-    const handleFlowPay = async (e: React.FormEvent) => {
+    const handleMercadoPagoPay = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setLoading(true);
@@ -47,7 +55,7 @@ export default function CheckoutPage() {
         const region = data.get('region')?.toString() || '';
         const shippingAddress = `${direccion}, ${comuna}, ${region}`;
         try {
-            const res = await fetch('/api/flow', {
+            const res = await fetch('/api/mercadopago', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -69,12 +77,15 @@ export default function CheckoutPage() {
                 })
             });
             const result = await res.json();
-            if (!res.ok) throw new Error(result.error || 'Error en el pago');
-            clearCart();
-            if (result.url) {
-                window.location.href = result.url;
+            if (!res.ok) {
+                console.error("Detalles del error del backend:", result.details);
+                throw new Error(result.details || result.error || 'Error al generar pago');
+            }
+            
+            if (result.preferenceId) {
+                setPreferenceId(result.preferenceId);
             } else {
-                setError('No se recibió URL de pago de Flow');
+                setError('No se recibió enlace de pago de Mercado Pago');
             }
         } catch (err: any) {
             setError(err.message || 'Error inesperado');
@@ -116,7 +127,7 @@ export default function CheckoutPage() {
                         </div>
                     )}
 
-                    <form ref={formRef} onSubmit={handleFlowPay} className="space-y-5 font-mono text-xs tracking-widest bg-[#111] p-4 rounded border border-[#222]">
+                    <form id="checkout-form" ref={formRef} onSubmit={handleMercadoPagoPay} className="space-y-5 font-mono text-xs tracking-widest bg-[#111] p-4 rounded border border-[#222]">
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex flex-col gap-1">
@@ -201,16 +212,27 @@ export default function CheckoutPage() {
                             <span className="text-xl font-bold text-white">${total.toLocaleString('es-CL')}</span>
                         </div>
 
-                        <form ref={formRef} onSubmit={handleFlowPay}>
+                        {preferenceId ? (
+                            <div className="mt-2">
+                                <Wallet
+                                    initialization={{ preferenceId, redirectMode: 'self' }}
+                                    customization={{ texts: { action: 'pay', valueProp: 'security_safety' } } as any}
+                                />
+                            </div>
+                        ) : (
                             <button
+                                form="checkout-form"
                                 type="submit"
                                 className="w-full py-4 rounded bg-[#181818] text-white font-semibold text-base uppercase tracking-widest border border-[#333] hover:bg-[#222] transition-colors disabled:opacity-50"
-                                disabled={loading}
+                                disabled={loading || cartItems.length === 0}
                             >
-                                PAGAR CON FLOW
-                                {loading && <span className="text-xs ml-2 animate-pulse">Procesando...</span>}
+                                {loading ? (
+                                    <span className="animate-pulse">Procesando...</span>
+                                ) : (
+                                    'GENERAR PAGO'
+                                )}
                             </button>
-                        </form>
+                        )}
                     </div>
                 </FadeIn>
             </div>

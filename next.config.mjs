@@ -52,7 +52,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src ${connectSrc} blob: https://va.vercel-scripts.com https://vitals.vercel-insights.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://res.cloudinary.com; worker-src 'self' blob:;`,
+                        value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://sdk.mercadopago.com https://http2.mlstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src ${connectSrc} blob: https://va.vercel-scripts.com https://vitals.vercel-insights.com https://api.mercadopago.com https://events.mercadopago.com https://http2.mlstatic.com https://www.mercadolibre.com https://api.mercadolibre.com; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.mercadopago.cl https://www.mercadopago.com https://www.mercadolibre.com; media-src 'self' https://res.cloudinary.com; worker-src 'self' blob:;`,
                     },
                 ],
             },
