@@ -54,10 +54,13 @@ function EditorContent() {
           if (res.ok) {
             let list = await res.json();
             // Ordenar por sessionNumber numérico descendente (más reciente primero)
-            list = list.sort((a: { sessionNumber: string }, b: { sessionNumber: string }) => {
+            list = list.sort((a: any, b: any) => {
               const numA = parseInt((a.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
               const numB = parseInt((b.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
-              return numB - numA;
+              if (numA !== numB) {
+                return numB - numA;
+              }
+              return (b.createdAt || b.id).localeCompare(a.createdAt || a.id);
             });
             setSessionsList(list);
 
@@ -195,7 +198,7 @@ function EditorContent() {
         if (blob.type.startsWith('video/')) {
           console.log(`[VIDEO UPLOAD] Detectado video de ${(blob.size / 1048576).toFixed(1)}MB, tipo: ${blob.type}`);
           setSaveStatus(`SUBIENDO VIDEO (${(blob.size / 1048576).toFixed(1)}MB)... PUEDE DEMORAR`);
-          
+
           // 1. Obtener firma del backend (pequeña petición)
           const sigRes = await fetch('/api/upload/signature');
           if (!sigRes.ok) throw new Error('Error al obtener firma de seguridad de Cloudinary');
@@ -218,11 +221,11 @@ function EditorContent() {
           });
           const cloudData = await cloudinaryRes.json();
           console.log('[VIDEO UPLOAD] Respuesta Cloudinary:', cloudinaryRes.status, cloudData);
-          
+
           if (!cloudinaryRes.ok) {
             throw new Error(cloudData.error?.message || `Error en Cloudinary (HTTP ${cloudinaryRes.status})`);
           }
-          
+
           console.log('[VIDEO UPLOAD] ✅ URL final:', cloudData.secure_url);
           setSaveStatus("VIDEO SUBIDO EXITOSAMENTE.");
           return cloudData.secure_url;
@@ -257,15 +260,15 @@ function EditorContent() {
     if (!window.confirm("¿Estás seguro de que quieres eliminar esta sesión y todos sus artistas asociados? ¡Esta acción no se puede deshacer!")) {
       return;
     }
-    
+
     setSaveStatus("ELIMINANDO SESIÓN...");
     setIsSaving(true);
-    
+
     try {
       const res = await fetch(`/api/admin/content?type=sessions&id=${currentSessionId}`, {
         method: 'DELETE'
       });
-      
+
       if (res.ok) {
         setSaveStatus("SESIÓN ELIMINADA");
         // Remove from list and select the next available or reset
@@ -285,7 +288,7 @@ function EditorContent() {
       console.error(e);
       setSaveStatus("ERROR CRÍTICO AL ELIMINAR");
     }
-    
+
     setTimeout(() => {
       setSaveStatus(null);
       setIsSaving(false);
@@ -387,8 +390,8 @@ function EditorContent() {
                   <option key={session.id} value={session.id}>Sesi&oacute;n #{session.sessionNumber} - {session.title}</option>
                 ))}
               </select>
-              
-              <button 
+
+              <button
                 onClick={handleDeleteSession}
                 disabled={!currentSessionId || isSaving}
                 className="w-full bg-red-950/30 border border-red-900/50 text-red-500 hover:bg-red-900/50 hover:text-white p-2 text-[10px] font-mono uppercase tracking-widest transition-colors disabled:opacity-50"

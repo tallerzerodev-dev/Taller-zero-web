@@ -37,7 +37,11 @@ export default async function SessionsPage() {
   sessions = sessions.sort((a, b) => {
     const numA = parseInt((a.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
     const numB = parseInt((b.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
-    return numB - numA;
+    if (numA !== numB) {
+      return numB - numA;
+    }
+    // Fallback: más reciente por fecha de creación
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
   return (
@@ -84,18 +88,18 @@ export default async function SessionsPage() {
                     </div>
 
                     {/* IMAGEN DESTACADA */}
-                    <div className="w-full aspect-[4/3] bg-black overflow-hidden relative mb-6">
+                    <div className="w-full aspect-[9/16] bg-black overflow-hidden relative mb-6">
                       {(() => {
                         const bgUrl = session.gifUrl || '/placeholder.jpg';
                         const isVideo = bgUrl.toLowerCase().endsWith('.mp4') || bgUrl.toLowerCase().endsWith('.webm') || bgUrl.toLowerCase().endsWith('.mov');
                         return isVideo ? (
-                          <video src={bgUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-contain grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0" />
+                          <video src={bgUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0" />
                         ) : (
                           <Image
                             src={bgUrl}
                             alt={session.title}
                             fill
-                            className="object-contain grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0"
+                            className="object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0"
                           />
                         );
                       })()}
