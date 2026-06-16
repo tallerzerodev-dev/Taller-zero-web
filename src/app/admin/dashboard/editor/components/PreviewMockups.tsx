@@ -102,7 +102,7 @@ export function PreviewSession({ content }: { content: any }) {
         )}
       </div>
 
-      <div className="w-full aspect-[9/16] max-w-sm mx-auto bg-[#0a0a0a] border border-[#333] relative flex items-center justify-center overflow-hidden mb-16 z-10">
+      <div className="w-full aspect-[3/4] max-w-sm mx-auto bg-[#0a0a0a] border border-[#333] relative flex items-center justify-center overflow-hidden mb-16 z-10">
         {(() => {
           const bgUrl2 = content.gifUrl || '';
           const isVideo2 = bgUrl2.toLowerCase().endsWith('.mp4') || bgUrl2.toLowerCase().endsWith('.webm') || bgUrl2.toLowerCase().endsWith('.mov');
