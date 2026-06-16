@@ -57,3 +57,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Error del servidor conectando a base de datos' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get('type');
+  const id = searchParams.get('id');
+
+  try {
+    if (type && ['sesiones', 'Sesiones', 'sesines', 'Sesines', 'sesiónes', 'Sesiónes', 'sessions'].includes(type)) {
+      if (!id) {
+        return NextResponse.json({ error: 'ID no especificado' }, { status: 400 });
+      }
+      await prisma.session.delete({
+        where: { id }
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: 'Tipo no soportado para eliminar' }, { status: 400 });
+  } catch (error) {
+    console.error("Error eliminando datos:", error);
+    return NextResponse.json({ error: 'Error del servidor conectando a base de datos' }, { status: 500 });
+  }
+}

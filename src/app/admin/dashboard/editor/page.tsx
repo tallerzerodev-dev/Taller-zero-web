@@ -252,6 +252,47 @@ function EditorContent() {
     return '';
   }
 
+  const handleDeleteSession = async () => {
+    if (!currentSessionId) return;
+    if (!window.confirm("¿Estás seguro de que quieres eliminar esta sesión y todos sus artistas asociados? ¡Esta acción no se puede deshacer!")) {
+      return;
+    }
+    
+    setSaveStatus("ELIMINANDO SESIÓN...");
+    setIsSaving(true);
+    
+    try {
+      const res = await fetch(`/api/admin/content?type=sessions&id=${currentSessionId}`, {
+        method: 'DELETE'
+      });
+      
+      if (res.ok) {
+        setSaveStatus("SESIÓN ELIMINADA");
+        // Remove from list and select the next available or reset
+        const newList = sessionsList.filter(s => s.id !== currentSessionId);
+        setSessionsList(newList);
+        if (newList.length > 0) {
+          setCurrentSessionId(newList[0].id);
+        } else {
+          setCurrentSessionId('');
+          setContent(defaultEditorData.sessions);
+        }
+      } else {
+        const errorData = await res.json();
+        setSaveStatus(errorData.error || "ERROR AL ELIMINAR");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setSaveStatus("ERROR CRÍTICO AL ELIMINAR");
+    }
+    
+    setTimeout(() => {
+      setSaveStatus(null);
+      setIsSaving(false);
+    }, 3000);
+  }
+
+
   const handleSave = async () => {
     setIsSaving(true);
     setSaveStatus("SUBIENDO ARCHIVOS AL SERVIDOR...");
@@ -333,18 +374,28 @@ function EditorContent() {
           <h2 className="text-2xl font-bold uppercase tracking-widest text-white mb-4">Edición: {page}</h2>
 
           {page === 'sessions' && searchParams.get('action') !== 'new' && (
-            <select
-              className="w-full bg-black border border-[#333] p-3 text-white text-xs font-mono uppercase tracking-widest cursor-pointer outline-none focus:border-white transition-colors"
-              value={currentSessionId}
-              onChange={(e) => {
-                setCurrentSessionId(e.target.value);
-                setIsDirty(false);
-              }}
-            >
-              {sessionsList.map((session) => (
-                <option key={session.id} value={session.id}>Sesi&oacute;n #{session.sessionNumber} - {session.title}</option>
-              ))}
-            </select>
+            <div className="flex flex-col gap-2">
+              <select
+                className="w-full bg-black border border-[#333] p-3 text-white text-xs font-mono uppercase tracking-widest cursor-pointer outline-none focus:border-white transition-colors"
+                value={currentSessionId}
+                onChange={(e) => {
+                  setCurrentSessionId(e.target.value);
+                  setIsDirty(false);
+                }}
+              >
+                {sessionsList.map((session) => (
+                  <option key={session.id} value={session.id}>Sesi&oacute;n #{session.sessionNumber} - {session.title}</option>
+                ))}
+              </select>
+              
+              <button 
+                onClick={handleDeleteSession}
+                disabled={!currentSessionId || isSaving}
+                className="w-full bg-red-950/30 border border-red-900/50 text-red-500 hover:bg-red-900/50 hover:text-white p-2 text-[10px] font-mono uppercase tracking-widest transition-colors disabled:opacity-50"
+              >
+                Eliminar Esta Sesión
+              </button>
+            </div>
           )}
 
           {page === 'sessions' && searchParams.get('action') === 'new' && (

@@ -7,6 +7,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const timestamp = Math.round((new Date).getTime() / 1000);
