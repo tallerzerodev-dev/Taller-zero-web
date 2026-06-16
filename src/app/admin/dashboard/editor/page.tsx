@@ -53,13 +53,8 @@ function EditorContent() {
           const res = await fetch('/api/admin/content?type=sessions');
           if (res.ok) {
             let list = await res.json();
-            // Ordenar por sessionNumber numérico descendente (más reciente primero)
+            // Ordenar por fecha de creación descendente
             list = list.sort((a: any, b: any) => {
-              const numA = parseInt((a.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
-              const numB = parseInt((b.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
-              if (numA !== numB) {
-                return numB - numA;
-              }
               return (b.createdAt || b.id).localeCompare(a.createdAt || a.id);
             });
             setSessionsList(list);

@@ -33,14 +33,8 @@ export default async function SessionsPage() {
   let sessions = await prisma.session.findMany({
     include: { artists: true }
   })
-  // Ordenar por sessionNumber numérico descendente (más reciente primero)
+  // Ordenar por fecha de creación descendente (más reciente primero)
   sessions = sessions.sort((a, b) => {
-    const numA = parseInt((a.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
-    const numB = parseInt((b.sessionNumber || '').replace(/\D/g, ''), 10) || 0;
-    if (numA !== numB) {
-      return numB - numA;
-    }
-    // Fallback: más reciente por fecha de creación
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
@@ -69,7 +63,7 @@ export default async function SessionsPage() {
       {/* SESSIONS GRID */}
       <section className="px-6 w-full max-w-[1400px] mx-auto">
         {sessions.length > 0 ? (
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {sessions.map((session: any, idx: number) => (
               <FadeIn key={session.id}>
                 <Link
