@@ -89,13 +89,13 @@ export default async function SessionsPage() {
                         const bgUrl = session.gifUrl || '/placeholder.jpg';
                         const isVideo = bgUrl.toLowerCase().endsWith('.mp4') || bgUrl.toLowerCase().endsWith('.webm') || bgUrl.toLowerCase().endsWith('.mov');
                         return isVideo ? (
-                          <video src={bgUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0" />
+                          <video src={bgUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-contain grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0" />
                         ) : (
                           <Image
                             src={bgUrl}
                             alt={session.title}
                             fill
-                            className="object-cover grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0"
+                            className="object-contain grayscale mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000 z-0"
                           />
                         );
                       })()}

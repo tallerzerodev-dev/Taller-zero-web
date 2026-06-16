@@ -107,9 +107,9 @@ export function PreviewSession({ content }: { content: any }) {
           const bgUrl2 = content.gifUrl || '';
           const isVideo2 = bgUrl2.toLowerCase().endsWith('.mp4') || bgUrl2.toLowerCase().endsWith('.webm') || bgUrl2.toLowerCase().endsWith('.mov');
           return isVideo2 ? (
-            <video src={bgUrl2} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity opacity-40" />
+            <video src={bgUrl2} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-contain grayscale mix-blend-luminosity opacity-40" />
           ) : (
-            <div className="absolute inset-0 bg-cover bg-center grayscale mix-blend-luminosity opacity-40" style={{ backgroundImage: `url(${bgUrl2})` }}></div>
+            <div className="absolute inset-0 bg-contain bg-no-repeat bg-center grayscale mix-blend-luminosity opacity-40" style={{ backgroundImage: `url(${bgUrl2})` }}></div>
           );
         })()}
       </div>
