@@ -77,12 +77,12 @@ export default async function GaleriaPage({
                 ) : (
                     <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
                         {photos.map((photo: any, i: number) => (
-                            <div key={photo.id} className="break-inside-avoid relative group cursor-pointer mb-6 border border-[#222] min-h-[300px] bg-[#111]">
+                            <div key={photo.id} className="break-inside-avoid relative group cursor-pointer mb-6 border border-[#222] overflow-hidden">
                                 <Image
                                     src={photo.url}
                                     alt={photo.caption || 'Galería foto'}
-                                    width={1000}
-                                    height={1000}
+                                    width={800}
+                                    height={600}
                                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                                     className="w-full h-auto object-cover grayscale opacity-75 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 block"
                                     loading="lazy"
