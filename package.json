@@ -12,6 +12,8 @@
     "@google-analytics/data": "^5.2.1",
     "@hookform/resolvers": "^5.2.2",
     "@mercadopago/sdk-react": "^1.0.7",
+    "@upstash/ratelimit": "^2.2.0",
+    "@upstash/redis": "^1.39.0",
     "@vercel/analytics": "^2.0.1",
     "browser-image-compression": "^2.0.2",
     "cloudinary": "^2.9.0",

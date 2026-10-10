@@ -4,10 +4,7 @@ import { z } from 'zod';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { SHIPPING_OPTIONS, SHIPPING_TYPES } from '@/lib/shipping';
 import { getMercadoPagoAccessToken, getSiteUrl } from '@/lib/payments';
-
-const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
-const RATE_LIMIT_MAX = 5;
-const rateLimitMap = new Map<string, { count: number, expires: number }>();
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // El navegador solo dice QUÉ quiere comprar. Precio, título, envío, total e ID de orden
 // los decide el servidor; .strict() rechaza cualquier campo extra (price, amount, orderId...).
@@ -26,17 +23,8 @@ const CheckoutSchema = z.object({
 }).strict();
 
 export async function POST(req: Request) {
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
-    if (entry && entry.expires > now) {
-        if (entry.count >= RATE_LIMIT_MAX) {
-            return NextResponse.json({ error: 'Demasiados intentos, espera unos minutos.' }, { status: 429 });
-        }
-        entry.count++;
-        rateLimitMap.set(ip, entry);
-    } else {
-        rateLimitMap.set(ip, { count: 1, expires: now + RATE_LIMIT_WINDOW_MS });
+    if (!(await checkRateLimit('checkout', req.headers))) {
+        return NextResponse.json({ error: 'Demasiados intentos, espera unos minutos.' }, { status: 429 });
     }
 
     try {

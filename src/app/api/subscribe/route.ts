@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 const SubscribeSchema = z.object({
     email: z.string().trim().toLowerCase().email('Email inválido').max(200),
 });
 
 export async function POST(req: Request) {
+    if (!(await checkRateLimit('subscribe', req.headers))) {
+        return NextResponse.json({ error: 'Demasiados intentos, espera unos minutos.' }, { status: 429 });
+    }
+
     try {
         const body = await req.json();
         const parsed = SubscribeSchema.safeParse(body);

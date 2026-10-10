@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Resend } from 'resend';
 import { escapeHtml } from '@/lib/html';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -19,6 +20,10 @@ const ApplySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!(await checkRateLimit('apply', request.headers))) {
+    return NextResponse.json({ error: 'Demasiados intentos, espera unos minutos.' }, { status: 429 });
+  }
+
   try {
     const body = await request.json();
     

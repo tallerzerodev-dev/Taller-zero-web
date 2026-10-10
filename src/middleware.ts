@@ -2,6 +2,7 @@ import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { isAdminEmail } from '@/lib/admin'
+import { checkRateLimit } from '@/lib/ratelimit'
 
 const BYPASS_COOKIE = 'maintenance_bypass'
 
@@ -12,6 +13,13 @@ async function sha256Hex(value: string): Promise<string> {
 
 export async function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl
+
+    // 0. Páginas públicas que se abren con un token de invitación: frenar a quien pruebe tokens en masa.
+    // /scan y /api/qr quedan fuera: no revelan nada sin sesión de staff y en la puerta comparten IP.
+    const isTokenRoute = ['/vip/', '/winner/'].some(prefix => pathname.startsWith(prefix))
+    if (isTokenRoute && !(await checkRateLimit('token', request.headers))) {
+        return new NextResponse('Demasiados intentos, espera un minuto.', { status: 429 })
+    }
 
     // 1. Lógica de Modo Mantenimiento (solo para la tienda)
     const isMaintenanceMode = process.env.MAINTENANCE_MODE === 'true'
