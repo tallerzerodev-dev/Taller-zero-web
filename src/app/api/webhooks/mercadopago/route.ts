@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
-import { MercadoPagoConfig, Payment } from 'mercadopago';
+import { syncOrderFromPayment } from '@/lib/payments';
+
+function signaturesMatch(expectedHex: string, receivedHex: string): boolean {
+    const expected = Buffer.from(expectedHex, 'hex');
+    const received = Buffer.from(receivedHex, 'hex');
+    // timingSafeEqual exige el mismo largo; un largo distinto ya es una firma inválida
+    return expected.length === received.length && crypto.timingSafeEqual(expected, received);
+}
 
 export async function POST(request: Request) {
     try {
@@ -44,61 +50,22 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
         }
 
-        // 4. Generar el string manifiesto
-        const manifest = `id:${dataID};request-id:${xRequestId};ts:${ts};`;
+        // 4. Generar el string manifiesto (Mercado Pago firma el data.id en minúsculas)
+        const manifest = `id:${dataID.toLowerCase()};request-id:${xRequestId};ts:${ts};`;
 
         // 5. Crear la firma HMAC y comparar
-        const hmac = crypto.createHmac('sha256', secret);
-        hmac.update(manifest);
-        const sha = hmac.digest('hex');
+        const sha = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
 
-        if (sha !== hash) {
+        if (!signaturesMatch(sha, hash)) {
             console.error('Webhook signature validation failed');
             return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
         }
 
-        // 6. Si la firma es válida, consultar a la API de Mercado Pago por el estado del pago
-        const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN_TEST;
-        if (!accessToken) {
-            return NextResponse.json({ error: 'Access token missing' }, { status: 500 });
-        }
-
-        const client = new MercadoPagoConfig({ accessToken });
-        const paymentClient = new Payment(client);
-        
-        const paymentData = await paymentClient.get({ id: dataID });
-
-        // El external_reference es nuestro ID de orden generado en el checkout
-        const orderId = paymentData.external_reference;
-        const status = paymentData.status;
-
-        if (orderId) {
-            // Mapeamos los estados de Mercado Pago a nuestro sistema (PENDING, PAID, CANCELLED)
-            let newStatus = 'PENDING';
-            if (status === 'approved') {
-                newStatus = 'PAID';
-            } else if (status === 'rejected' || status === 'cancelled' || status === 'refunded') {
-                newStatus = 'CANCELLED';
-            }
-
-            // Actualizamos en la base de datos
-            const updatedOrder = await prisma.order.update({
-                where: { id: orderId },
-                data: { status: newStatus },
-                include: {
-                    items: {
-                        include: { product: true }
-                    }
-                }
-            });
-            console.log(`Orden ${orderId} actualizada a ${newStatus}`);
-
-            // Enviar correo de confirmación si fue aprobada
-            if (newStatus === 'PAID') {
-                const { sendPurchaseConfirmation } = await import('@/lib/email');
-                await sendPurchaseConfirmation(updatedOrder);
-            }
-        }
+        // 6. La firma solo prueba que el aviso es de Mercado Pago. El estado, el monto y la orden
+        // se leen de su API dentro de syncOrderFromPayment, que además es idempotente:
+        // un aviso repetido o reenviado no cambia nada.
+        const result = await syncOrderFromPayment(dataID);
+        console.log(`Webhook Mercado Pago: pago ${dataID} -> ${result.outcome}`);
 
         // Siempre responder 200 OK a Mercado Pago para confirmar recepción
         return NextResponse.json({ received: true }, { status: 200 });

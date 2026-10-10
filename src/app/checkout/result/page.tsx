@@ -1,31 +1,49 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import ClearCartOnSuccess from './ClearCartOnSuccess';
+import { syncOrderFromPayment } from '@/lib/payments';
+
+export const dynamic = 'force-dynamic';
+
+type ResultState = 'paid' | 'pending' | 'failed' | 'unknown';
 
 export default async function CheckoutResultPage({ searchParams }: { searchParams: { collection_id?: string; status?: string; external_reference?: string; payment_id?: string } }) {
-    const { status, external_reference, collection_id, payment_id } = searchParams;
-    const isSuccess = status === 'approved';
-    const orderId = external_reference || '';
+    const paymentId = searchParams.payment_id || searchParams.collection_id || '';
 
-    // Si tenemos orderId y status, podemos actualizar la base de datos (idealmente esto se hace vía Webhook para ser 100% seguro)
-    if (orderId && isSuccess) {
+    // Los parámetros de la URL los puede escribir cualquiera, así que NO deciden nada.
+    // Solo se usa el ID de pago para preguntarle a Mercado Pago, y el estado que se muestra
+    // es el que quedó guardado en la base de datos.
+    let orderId = '';
+    if (/^\d{1,20}$/.test(paymentId)) {
         try {
-            await prisma.order.update({
-                where: { id: orderId },
-                data: { status: 'PAID' }
-            });
+            const result = await syncOrderFromPayment(paymentId);
+            orderId = result.orderId || '';
         } catch (error) {
-            console.error('Error updating order status in Result Page', error);
+            console.error('Error verificando el pago en la página de resultado', error);
         }
     }
 
-    if (!status) {
+    const order = orderId
+        ? await prisma.order.findUnique({ where: { id: orderId }, select: { id: true, status: true } })
+        : null;
+
+    let state: ResultState = 'unknown';
+    if (order) {
+        if (['PAID', 'SHIPPED', 'DELIVERED'].includes(order.status)) state = 'paid';
+        else if (order.status === 'PENDING') state = 'pending';
+        else state = 'failed';
+    } else if (searchParams.status) {
+        state = 'failed';
+    }
+
+    const orderNumber = order ? order.id.slice(-6).toUpperCase() : '';
+
+    if (state === 'unknown') {
         return (
             <main className="flex-1 flex flex-col items-center justify-center bg-black min-h-screen px-6">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold uppercase tracking-widest text-red-500 mb-4">Error de Pago</h1>
-                    <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-4">No se recibió información de la transacción.</p>
-                    <p className="text-[#555] font-mono text-[10px] break-all max-w-lg mx-auto mb-8 bg-[#111] p-2">Debug Data: {JSON.stringify(searchParams)}</p>
+                    <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">No se recibió información de la transacción.</p>
                     <Link href="/store" className="text-xs px-6 py-3 border border-white text-white font-mono uppercase hover:bg-white hover:text-black transition-colors">Volver a la tienda</Link>
                 </div>
             </main>
@@ -34,12 +52,12 @@ export default async function CheckoutResultPage({ searchParams }: { searchParam
 
     return (
         <main className="flex-1 flex items-center justify-center bg-black min-h-screen px-6">
-            {isSuccess && <ClearCartOnSuccess />}
+            {state === 'paid' && <ClearCartOnSuccess />}
             <div className="max-w-md w-full border border-[#333] p-8 bg-[#0a0a0a] text-center">
-                {isSuccess ? (
+                {state === 'paid' && (
                     <>
                         <h1 className="text-3xl font-bold uppercase tracking-widest text-white mb-2">Pago Exitoso</h1>
-                        <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">Tu orden #{orderId} ha sido confirmada.</p>
+                        <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">Tu orden #{orderNumber} ha sido confirmada.</p>
                         <div className="mb-8">
                             <span className="inline-block p-4 bg-[#111] border border-[#222]">
                                 <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -51,7 +69,16 @@ export default async function CheckoutResultPage({ searchParams }: { searchParam
                             Recibirás un correo con los detalles del envío.
                         </p>
                     </>
-                ) : (
+                )}
+                {state === 'pending' && (
+                    <>
+                        <h1 className="text-3xl font-bold uppercase tracking-widest text-white mb-2">Confirmando Pago</h1>
+                        <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">
+                            Estamos esperando la confirmación de tu pago para la orden #{orderNumber}. Te avisaremos por correo cuando se apruebe.
+                        </p>
+                    </>
+                )}
+                {state === 'failed' && (
                     <>
                         <h1 className="text-3xl font-bold uppercase tracking-widest text-red-500 mb-2">Pago No Completado</h1>
                         <p className="text-[#888] font-mono text-xs uppercase tracking-widest mb-8">Hubo un problema con tu pago o fue rechazado.</p>
@@ -64,7 +91,7 @@ export default async function CheckoutResultPage({ searchParams }: { searchParam
                         </div>
                     </>
                 )}
-                
+
                 <Link href="/store" className="block w-full text-xs px-6 py-4 border border-white text-white font-mono uppercase hover:bg-white hover:text-black transition-colors">
                     VOLVER A LA TIENDA
                 </Link>

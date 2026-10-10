@@ -2,28 +2,28 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { SHIPPING_OPTIONS, SHIPPING_TYPES } from '@/lib/shipping';
+import { getMercadoPagoAccessToken, getSiteUrl } from '@/lib/payments';
 
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
 const RATE_LIMIT_MAX = 5;
 const rateLimitMap = new Map<string, { count: number, expires: number }>();
 
-const MercadoPagoOrderSchema = z.object({
-    amount: z.number().min(0), // Changed from 1 to 0 temporarily to see if empty cart was the issue, though empty cart shouldn't happen
-    currency: z.string().default('CLP'),
-    concept: z.string(),
-    email: z.string().email(),
-    orderId: z.string(),
-    customerName: z.string(),
-    customerPhone: z.string().optional(),
-    shippingAddress: z.string().optional(),
+// El navegador solo dice QUÉ quiere comprar. Precio, título, envío, total e ID de orden
+// los decide el servidor; .strict() rechaza cualquier campo extra (price, amount, orderId...).
+const CheckoutSchema = z.object({
+    email: z.string().trim().email().max(200),
+    customerName: z.string().trim().min(2).max(120),
+    customerPhone: z.string().trim().min(6).max(30),
+    shippingAddress: z.string().trim().min(5).max(500),
+    shippingType: z.enum(SHIPPING_TYPES),
     items: z.array(z.object({
-        id: z.string(),
-        title: z.string(),
-        price: z.number(),
-        quantity: z.number().min(1),
-        size: z.string().optional(),
-    })),
-});
+        id: z.string().min(1).max(64),
+        quantity: z.number().int().min(1).max(10),
+        size: z.string().max(30).optional(),
+        color: z.string().max(30).optional(),
+    }).strict()).min(1).max(20),
+}).strict();
 
 export async function POST(req: Request) {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -40,113 +40,150 @@ export async function POST(req: Request) {
     }
 
     try {
-        const body = await req.json();
-        const parsed = MercadoPagoOrderSchema.safeParse(body);
+        const body = await req.json().catch(() => null);
+        const parsed = CheckoutSchema.safeParse(body);
         if (!parsed.success) {
-            console.error('ZOD VALIDATION ERROR:', JSON.stringify(parsed.error.format(), null, 2));
-            console.error('RECEIVED BODY:', JSON.stringify(body, null, 2));
-            return NextResponse.json({ error: 'Payload inválido', details: parsed.error.format() }, { status: 400 });
+            return NextResponse.json({ error: 'Datos de compra inválidos. Revisa el formulario e intenta de nuevo.' }, { status: 400 });
         }
 
         const data = parsed.data;
-        const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN_TEST || '';
+        const accessToken = getMercadoPagoAccessToken();
 
         if (!accessToken) {
             return NextResponse.json({ error: 'Credenciales de Mercado Pago no configuradas' }, { status: 500 });
         }
 
-        // VALIDACIÓN DE CARRITO: Asegurarnos de que los productos existen en la BD
-        // Si el usuario tiene productos viejos en localStorage que fueron borrados, Prisma lanzará error 500.
-        const productIds = data.items.map(i => i.id);
-        const existingProducts = await prisma.product.findMany({
+        // VALIDACIÓN DE CARRITO contra la base de datos
+        const productIds = Array.from(new Set(data.items.map(i => i.id)));
+        const products = await prisma.product.findMany({
             where: { id: { in: productIds } },
-            select: { id: true }
         });
+        const productsById = new Map(products.map(p => [p.id, p]));
 
-        if (existingProducts.length !== productIds.length) {
-            return NextResponse.json({ 
-                error: 'Hay productos en tu carrito que ya no están disponibles o fueron borrados. Por favor vacía tu carrito e intenta de nuevo.' 
-            }, { status: 400 });
-        }
-
-        let origin = req.headers.get('origin') || 'https://taller-zero.cl';
-        // Mercado Pago bloquea explícitamente "localhost" en las back_urls y lanza el error "back_url.success must be defined".
-        // Para desarrollo local, usaremos el dominio de producción como un parche.
-        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-            origin = 'https://taller-zero.cl';
-        }
-        const resultUrl = `${origin}/checkout/result`;
-
-        const mpItems = data.items.map(item => ({
-            id: item.id,
-            title: item.size ? `${item.title} (Talla: ${item.size})` : item.title,
-            quantity: item.quantity,
-            unit_price: item.price,
-            currency_id: 'CLP',
-        }));
-
-        const itemsTotal = data.items.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
-        if (data.amount > itemsTotal) {
-            mpItems.push({
-                id: 'shipping',
-                title: 'Costo de Envío',
-                quantity: 1,
-                unit_price: data.amount - itemsTotal,
-                currency_id: 'CLP',
-            });
-        }
-
-        // Initialize Mercado Pago SDK
-        const client = new MercadoPagoConfig({ accessToken });
-        const preference = new Preference(client);
-
-        const preferenceResponse = await preference.create({
-            body: {
-                items: mpItems,
-                payer: {
-                    name: data.customerName,
-                    email: data.email,
-                },
-                back_urls: {
-                    success: resultUrl,
-                    failure: resultUrl,
-                    pending: resultUrl
-                },
-                auto_return: 'approved',
-                external_reference: data.orderId,
-                statement_descriptor: 'TALLER ZERO',
+        const quantityByProduct = new Map<string, number>();
+        for (const item of data.items) {
+            const product = productsById.get(item.id);
+            if (!product || !product.isAvailable) {
+                return NextResponse.json({
+                    error: 'Hay productos en tu carrito que ya no están disponibles. Por favor vacía tu carrito e intenta de nuevo.'
+                }, { status: 400 });
             }
+            if (product.sizes.length > 0 && (!item.size || !product.sizes.includes(item.size))) {
+                return NextResponse.json({ error: `Talla no válida para ${product.title}.` }, { status: 400 });
+            }
+            if (product.colors.length > 0 && (!item.color || !product.colors.includes(item.color))) {
+                return NextResponse.json({ error: `Color no válido para ${product.title}.` }, { status: 400 });
+            }
+            quantityByProduct.set(item.id, (quantityByProduct.get(item.id) || 0) + item.quantity);
+        }
+
+        for (const [productId, quantity] of Array.from(quantityByProduct)) {
+            const product = productsById.get(productId)!;
+            if (product.stock < quantity) {
+                return NextResponse.json({
+                    error: `No hay stock suficiente de ${product.title} (quedan ${product.stock}).`
+                }, { status: 400 });
+            }
+        }
+
+        const orderItems = data.items.map(item => {
+            const product = productsById.get(item.id)!;
+            return {
+                product,
+                quantity: item.quantity,
+                size: product.sizes.length > 0 ? item.size! : null,
+                color: product.colors.length > 0 ? item.color! : null,
+            };
         });
 
-        // Save order in database
-        await prisma.order.create({
+        const shippingCost = SHIPPING_OPTIONS[data.shippingType].cost;
+        const itemsTotal = orderItems.reduce((acc, i) => acc + i.product.price * i.quantity, 0);
+        const totalAmount = itemsTotal + shippingCost;
+
+        if (totalAmount <= 0) {
+            return NextResponse.json({ error: 'El total de la compra no es válido.' }, { status: 400 });
+        }
+
+        // La orden se crea primero para que su ID (generado por la base) sea la referencia del pago
+        const order = await prisma.order.create({
             data: {
-                id: data.orderId,
                 customerName: data.customerName,
                 customerEmail: data.email,
-                customerPhone: data.customerPhone || '',
-                shippingAddress: data.shippingAddress || '',
+                customerPhone: data.customerPhone,
+                shippingAddress: data.shippingAddress,
+                shippingType: data.shippingType,
+                shippingCost,
                 status: 'PENDING',
-                totalAmount: data.amount,
+                totalAmount,
                 items: {
-                    create: data.items.map((item: any) => ({
-                        productId: item.id,
-                        quantity: item.quantity,
-                        size: item.size || null,
-                        priceAtTime: item.price,
+                    create: orderItems.map(i => ({
+                        productId: i.product.id,
+                        quantity: i.quantity,
+                        size: i.size,
+                        color: i.color,
+                        priceAtTime: i.product.price,
                     })),
                 },
             },
         });
 
-        // Return the preference ID for the Wallet component
-        return NextResponse.json({ 
-            preferenceId: preferenceResponse.id 
-        });
+        const mpItems = orderItems.map(i => ({
+            id: i.product.id,
+            title: [i.product.title, i.size && `Talla: ${i.size}`, i.color && `Color: ${i.color}`].filter(Boolean).join(' - '),
+            quantity: i.quantity,
+            unit_price: i.product.price,
+            currency_id: 'CLP',
+        }));
+
+        if (shippingCost > 0) {
+            mpItems.push({
+                id: 'shipping',
+                title: 'Costo de Envío',
+                quantity: 1,
+                unit_price: shippingCost,
+                currency_id: 'CLP',
+            });
+        }
+
+        const siteUrl = getSiteUrl();
+        // Mercado Pago bloquea explícitamente "localhost" en las back_urls y lanza el error "back_url.success must be defined".
+        // Para desarrollo local, usaremos el dominio de producción como un parche.
+        const isLocal = siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1');
+        const publicUrl = isLocal ? 'https://www.taller-zero.cl' : siteUrl;
+        const resultUrl = `${publicUrl}/checkout/result`;
+
+        try {
+            const preference = new Preference(new MercadoPagoConfig({ accessToken }));
+            const preferenceResponse = await preference.create({
+                body: {
+                    items: mpItems,
+                    payer: {
+                        name: data.customerName,
+                        email: data.email,
+                    },
+                    back_urls: {
+                        success: resultUrl,
+                        failure: resultUrl,
+                        pending: resultUrl
+                    },
+                    auto_return: 'approved',
+                    external_reference: order.id,
+                    statement_descriptor: 'TALLER ZERO',
+                    ...(isLocal ? {} : { notification_url: `${siteUrl}/api/webhooks/mercadopago` }),
+                }
+            });
+
+            // Return the preference ID for the Wallet component
+            return NextResponse.json({
+                preferenceId: preferenceResponse.id
+            });
+        } catch (error) {
+            await prisma.order.update({ where: { id: order.id }, data: { status: 'CANCELLED' } });
+            throw error;
+        }
 
     } catch (error) {
         console.error('ERROR CREATING PREFERENCE:', error);
-        const errorDetails = error instanceof Error ? (error.stack || error.message) : JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
-        return NextResponse.json({ error: 'Error del servidor', details: errorDetails }, { status: 500 });
+        return NextResponse.json({ error: 'No se pudo generar el pago. Intenta nuevamente.' }, { status: 500 });
     }
 }

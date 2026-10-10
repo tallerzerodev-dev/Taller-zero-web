@@ -149,10 +149,20 @@ model Order {
   trackingNumber  String?
   trackingCompany String?  // e.g. Starken, Chilexpress, BlueExpress
 
+  shippingType    String?  // region, rm, retiro
+  shippingCost    Int      @default(0)
+
+  paymentId       String?  @unique // ID del pago en Mercado Pago que confirmó la orden
+  paidAt          DateTime?
+  reviewNote      String?  @db.Text // Se llena cuando la orden necesita revisión manual
+
   items           OrderItem[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([customerEmail])
 }
 
 model OrderItem {
@@ -161,12 +171,16 @@ model OrderItem {
   productId   String
   quantity    Int
   size        String?  // Talla seleccionada al momento de la compra
+  color       String?  // Color seleccionado al momento de la compra
   priceAtTime Int      // Precio histórico congelado al momento del pago
 
   order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 // ==========================================

@@ -5,38 +5,28 @@ import { FadeIn } from '@/components/ui/Animations';
 import { useRef, useState, useEffect } from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import { SHIPPING_OPTIONS, type ShippingType } from '@/lib/shipping';
 
 export default function CheckoutPage() {
     const formRef = useRef<HTMLFormElement>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [preferenceId, setPreferenceId] = useState<string | null>(null);
-    const [envioTipo, setEnvioTipo] = useState<'region' | 'rm' | 'retiro'>('region');
+    const [envioTipo, setEnvioTipo] = useState<ShippingType>('region');
     const [modoCompra, setModoCompra] = useState<'guest' | 'login'>('guest');
     const cartItems = useCartStore(state => state.items);
 
     useEffect(() => {
-        const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY_TEST || '';
+        const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY_TEST || '';
         if (publicKey) {
             initMercadoPago(publicKey, { locale: 'es-CL' });
         }
     }, []);
 
-    // Calcular totales reales desde el carrito
+    // Totales solo informativos: el monto que se cobra lo calcula el servidor con los precios de la base
     const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    // Lógica de envío
-    let envio = 0;
-    let envioLabel = '';
-    if (envioTipo === 'region') {
-        envio = 0;
-        envioLabel = 'Por pagar en destino (Starken)';
-    } else if (envioTipo === 'rm') {
-        envio = 5000;
-        envioLabel = 'BlueExpress (tarifa fija $5.000)';
-    } else if (envioTipo === 'retiro') {
-        envio = 0;
-        envioLabel = 'Retiro en Taller (gratis)';
-    }
+    const envio: number = SHIPPING_OPTIONS[envioTipo].cost;
+    const envioLabel = SHIPPING_OPTIONS[envioTipo].label;
     const total = subtotal + envio;
 
     const handleMercadoPagoPay = async (e: React.FormEvent) => {
@@ -59,27 +49,22 @@ export default function CheckoutPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    amount: total,
-                    currency: 'CLP',
-                    concept: `Compra de ${nombre} ${apellido}`,
                     email,
-                    orderId: `${Date.now()}`,
                     customerName: `${nombre} ${apellido}`.trim(),
                     customerPhone: telefono,
                     shippingAddress,
+                    shippingType: envioTipo,
                     items: cartItems.map(item => ({
                         id: item.id,
-                        title: item.title,
-                        price: item.price,
                         quantity: item.quantity,
                         size: item.size || undefined,
+                        color: item.color || undefined,
                     })),
                 })
             });
             const result = await res.json();
             if (!res.ok) {
-                console.error("Detalles del error del backend:", result.details);
-                throw new Error(result.details || result.error || 'Error al generar pago');
+                throw new Error(result.error || 'Error al generar pago');
             }
             
             if (result.preferenceId) {
@@ -123,7 +108,7 @@ export default function CheckoutPage() {
                     </div>
                     {modoCompra === 'login' && (
                         <div className="mb-6 text-xs text-[#888]">
-                            ¿Ya tienes cuenta? <Link href="/login" className="underline">Inicia sesión</Link>. ¿Nuevo? <Link href="/register" className="underline">Regístrate aquí</Link>.
+                            ¿Ya tienes cuenta? <Link href="/login" className="underline">Inicia sesión</Link>.
                         </div>
                     )}
 
