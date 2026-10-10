@@ -16,3 +16,9 @@ export function isAdminEmail(email: string | null | undefined): boolean {
     if (!email) return false;
     return getAdminEmails().includes(email.toLowerCase());
 }
+
+// Personal de puerta: puede validar entradas pero no entra al panel admin.
+export function isStaffEmail(email: string | null | undefined): boolean {
+    if (!email) return false;
+    return isAdminEmail(email) || parseEmailList(process.env.STAFF_EMAILS).includes(email.toLowerCase());
+}

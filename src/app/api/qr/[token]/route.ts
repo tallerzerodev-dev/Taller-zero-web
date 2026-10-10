@@ -4,6 +4,11 @@ import QRCode from 'qrcode'
 export async function GET(request: Request, { params }: { params: { token: string } }) {
   try {
     const { token } = params
+
+    // Solo se generan QR para tokens con formato de invitación
+    if (!/^tz-vip-[a-f0-9]{8,32}$/.test(token)) {
+      return new NextResponse('Token inválido', { status: 400 })
+    }
     
     const baseUrl = process.env.NEXTAUTH_URL || 'https://taller-zero.cl'
     const scanUrl = `${baseUrl}/scan/${token}`

@@ -2,9 +2,19 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Resend } from 'resend'
 import crypto from 'crypto'
+import { z } from 'zod'
+import { escapeHtml } from '@/lib/html'
 import { requireAdmin } from '@/lib/require-admin'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+const InvitationsSchema = z.object({
+  type: z.enum(['GUEST', 'WINNER']).optional(),
+  guests: z.array(z.object({
+    guestName: z.string().trim().min(1).max(120),
+    guestEmail: z.string().trim().email().max(200),
+  })).min(1).max(100),
+})
 
 export async function GET() {
   try {
@@ -26,12 +36,12 @@ export async function POST(request: Request) {
     const auth = await requireAdmin()
     if (auth.response) return auth.response
 
-    const { guests, type } = await request.json()
-
-    if (!guests || !Array.isArray(guests) || guests.length === 0) {
-      return NextResponse.json({ error: 'Debe enviar al menos un invitado' }, { status: 400 })
+    const parsed = InvitationsSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Lista de invitados inválida. Revisa nombres y correos (máximo 100 por envío).' }, { status: 400 })
     }
 
+    const { guests, type } = parsed.data
     const invitationType = type === 'WINNER' ? 'WINNER' : 'GUEST'
     
     // Obtener plantillas de correo
@@ -53,17 +63,15 @@ export async function POST(request: Request) {
     const subject = invitationType === 'WINNER' ? (emailTemplate.subjectWinner || 'TALLER ZERO - GANADOR') : (emailTemplate.subjectGuest || 'TALLER ZERO - ACCESO EXCLUSIVO')
     const title = invitationType === 'WINNER' ? (emailTemplate.titleWinner || 'ACCESO OTORGADO') : (emailTemplate.titleGuest || 'COMUNICADO DE ACCESO')
     const message = invitationType === 'WINNER' ? (emailTemplate.messageWinner || 'IDENTIDAD CONFIRMADA:') : (emailTemplate.messageGuest || 'IDENTIDAD CONFIRMADA:')
-    const footerLines = (emailTemplate.footer || '').split('\n').join('<br>')
+    const footerLines = escapeHtml(emailTemplate.footer || '').split('\n').join('<br>')
 
     const baseUrl = process.env.NEXTAUTH_URL || 'https://taller-zero.cl'
     const createdInvitations = []
+    const failedEmails: string[] = []
 
     for (const guest of guests) {
-      if (!guest.guestName || !guest.guestEmail) continue;
-
-      // 1. Generar token único
-      const rawToken = crypto.randomBytes(16).toString('hex')
-      const token = `tz-vip-${rawToken.substring(0, 8)}`
+      // 1. Generar token único (128 bits: no se puede adivinar probando)
+      const token = `tz-vip-${crypto.randomBytes(16).toString('hex')}`
 
       // 2. Crear registro en BD
       const invitation = await prisma.invitation.create({
@@ -87,7 +95,7 @@ export async function POST(request: Request) {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${subject}</title>
+          <title>${escapeHtml(subject)}</title>
           <style>
             @media screen and (max-width: 600px) {
               .container { width: 100% !important; padding: 20px 10px !important; }
@@ -112,7 +120,7 @@ export async function POST(request: Request) {
                   <tr>
                     <td style="padding: 40px 20px 20px 20px; border-bottom: 2px solid #222222;" class="inner-box">
                       <p style="color: #666666; letter-spacing: 3px; font-size: 10px; text-transform: uppercase; margin: 0 0 20px 0; font-weight: bold;">
-                        /// ${title} ///
+                        /// ${escapeHtml(title)} ///
                       </p>
                       <h1 class="header-title" style="font-size: 32px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; margin: 0; color: #ffffff;">
                         TALLER ZERO
@@ -124,10 +132,10 @@ export async function POST(request: Request) {
                   <tr>
                     <td style="padding: 40px 20px;" class="inner-box">
                       <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 10px 0; color: #888888;">
-                        ${message}
+                        ${escapeHtml(message)}
                       </p>
                       <h2 class="guest-name" style="font-size: 24px; font-weight: bold; margin: 0 0 30px 0; color: #ffffff; text-transform: uppercase; letter-spacing: 1px;">
-                        ${guest.guestName}
+                        ${escapeHtml(guest.guestName)}
                       </h2>
                       
                       <a href="${vipUrl}" class="btn" style="display: inline-block; background-color: #ffffff; color: #000000; text-decoration: none; padding: 18px 36px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; font-size: 12px; border: 1px solid #ffffff;">
@@ -177,7 +185,7 @@ export async function POST(request: Request) {
       `
 
       // 5. Enviar el correo usando Resend con prioridad ALTA
-      await resend.emails.send({
+      const { error: sendError } = await resend.emails.send({
         from: 'Taller Zero <contacto@taller-zero.cl>',
         to: [guest.guestEmail],
         subject: subject,
@@ -188,12 +196,21 @@ export async function POST(request: Request) {
           'Importance': 'high'
         }
       })
+      if (sendError) {
+        console.error('Error enviando invitación:', sendError.message)
+        failedEmails.push(guest.guestEmail)
+      }
     }
 
-    return NextResponse.json({ success: true, createdCount: createdInvitations.length })
+    return NextResponse.json({
+      success: true,
+      createdCount: createdInvitations.length,
+      sentCount: createdInvitations.length - failedEmails.length,
+      failedEmails,
+    })
 
   } catch (error: any) {
     console.error('Error al generar invitaciones:', error)
-    return NextResponse.json({ error: error.message || 'Error del servidor' }, { status: 500 })
+    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
   }
 }

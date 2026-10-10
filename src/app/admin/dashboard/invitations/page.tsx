@@ -70,7 +70,9 @@ export default function InvitationsPage() {
       const data = await res.json()
 
       if (res.ok) {
-        setMessage(`¡${data.createdCount} INVITACIONES ENVIADAS CON ÉXITO!`)
+        setMessage(data.failedEmails?.length
+          ? `${data.sentCount} ENVIADAS. FALLÓ EL CORREO PARA: ${data.failedEmails.join(', ')}`
+          : `¡${data.createdCount} INVITACIONES ENVIADAS CON ÉXITO!`)
         setGuests([{ guestName: '', guestEmail: '' }])
         fetchInvitations()
       } else {
