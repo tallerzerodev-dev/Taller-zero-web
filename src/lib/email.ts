@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { escapeHtml } from './html';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = 'ventas@taller-zero.cl'; // Replace with a verified domain email in Resend
@@ -11,8 +12,8 @@ export async function sendPurchaseConfirmation(order: any) {
     // Format items for email
     let itemsHtml = '<ul style="list-style-type: none; padding: 0;">';
     items.forEach((item: any) => {
-        const title = item.product?.title || 'Producto';
-        const sizeStr = item.size ? ` (Talla: ${item.size})` : '';
+        const title = escapeHtml(item.product?.title || 'Producto');
+        const sizeStr = escapeHtml([item.size && ` (Talla: ${item.size})`, item.color && ` (Color: ${item.color})`].filter(Boolean).join(''));
         const price = (item.priceAtTime * item.quantity).toLocaleString('es-CL');
         itemsHtml += `<li style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
             <strong>${item.quantity}x ${title}${sizeStr}</strong><br>
@@ -24,7 +25,7 @@ export async function sendPurchaseConfirmation(order: any) {
     const htmlContent = `
       <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
         <h1 style="color: #000; text-transform: uppercase; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">¡Gracias por tu compra!</h1>
-        <p>Hola <strong>${customerName}</strong>,</p>
+        <p>Hola <strong>${escapeHtml(customerName)}</strong>,</p>
         <p>Tu pago ha sido confirmado y ya estamos preparando tu pedido.</p>
         
         <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0;">
@@ -46,7 +47,7 @@ export async function sendPurchaseConfirmation(order: any) {
       html: htmlContent,
     });
 
-    console.log(`Confirmation email sent to ${customerEmail}`, data);
+    console.log(`Confirmation email sent for order ${orderNumber}`);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending confirmation email:', error);
@@ -62,13 +63,13 @@ export async function sendShippingNotification(order: any) {
         const htmlContent = `
           <div style="font-family: monospace; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
             <h1 style="color: #000; text-transform: uppercase; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">¡Tu pedido va en camino!</h1>
-            <p>Hola <strong>${customerName}</strong>,</p>
+            <p>Hola <strong>${escapeHtml(customerName)}</strong>,</p>
             <p>¡Buenas noticias! Tu pedido <strong>#${orderNumber}</strong> ha sido entregado a la empresa de transporte.</p>
             
             <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: center;">
               <h2 style="font-size: 14px; margin-top: 0; text-transform: uppercase; color: #666;">Información de Envío</h2>
-              <p style="font-size: 18px; margin: 10px 0;">Empresa: <strong>${trackingCompany || 'No especificada'}</strong></p>
-              <p style="font-size: 18px; margin: 10px 0;">Nº Seguimiento: <strong style="background: #e0e0e0; padding: 4px 8px;">${trackingNumber || 'No especificado'}</strong></p>
+              <p style="font-size: 18px; margin: 10px 0;">Empresa: <strong>${escapeHtml(trackingCompany || 'No especificada')}</strong></p>
+              <p style="font-size: 18px; margin: 10px 0;">Nº Seguimiento: <strong style="background: #e0e0e0; padding: 4px 8px;">${escapeHtml(trackingNumber || 'No especificado')}</strong></p>
             </div>
     
             <p>Puedes usar este número en el sitio web de la empresa de transportes para rastrear tu paquete.</p>
@@ -84,7 +85,7 @@ export async function sendShippingNotification(order: any) {
           html: htmlContent,
         });
     
-        console.log(`Shipping email sent to ${customerEmail}`, data);
+        console.log(`Shipping email sent for order ${orderNumber}`);
         return { success: true, data };
       } catch (error) {
         console.error('Error sending shipping email:', error);

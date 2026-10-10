@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
 import { requireAdmin } from '@/lib/require-admin'
+import { UPLOAD_FOLDER } from '@/lib/upload-rules'
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -10,8 +11,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const OWN_CLOUDINARY_PREFIX = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/`;
+
 async function destroyCloudinaryFile(url: string | null | undefined) {
-  if (!url || !url.includes('res.cloudinary.com')) return;
+  if (!url || !url.startsWith(OWN_CLOUDINARY_PREFIX) || !url.includes(`/${UPLOAD_FOLDER}/`)) return;
   try {
     const parts = url.split('/');
     const uploadIndex = parts.indexOf('upload');
@@ -22,7 +25,6 @@ async function destroyCloudinaryFile(url: string | null | undefined) {
     
     const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.mov');
     await cloudinary.uploader.destroy(publicId, { resource_type: isVideo ? 'video' : 'image' });
-    console.log('ADMIN/SAVE: Archivo eliminado de Cloudinary:', publicId);
   } catch (err) {
     console.error('ADMIN/SAVE: Error eliminando archivo de Cloudinary:', err);
   }
@@ -32,15 +34,28 @@ function sanitizeStr(val: string) {
   return typeof val === 'string' ? val.replace(/<[^>]*>?/gm, '') : val;
 }
 
+const isSafeUrl = (v: string) => v === '' || v.startsWith('https://') || (v.startsWith('/') && !v.startsWith('//'));
+const mediaUrl = z.string().max(2000).nullish().transform(v => v || '').refine(isSafeUrl, 'URL no permitida');
+
+function parseInfoSquares(value: unknown) {
+  if (!value) return undefined;
+  let raw = value;
+  if (typeof raw === 'string') {
+    try { raw = JSON.parse(raw); } catch { return undefined; }
+  }
+  const parsed = z.array(InfoSquareSchema).max(20).safeParse(raw);
+  return parsed.success ? parsed.data : undefined;
+}
+
 const HomeContentSchema = z.object({
   heroTitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   heroSubtitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  heroBackground: z.string().nullish().transform(v => v || ''),
+  heroBackground: mediaUrl,
   tickerText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   featuredSessionId: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   featuredSessionTitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  featuredSessionGif: z.string().nullish().transform(v => v || ''),
-  featuredItemImage: z.string().nullish().transform(v => v || ''),
+  featuredSessionGif: mediaUrl,
+  featuredItemImage: mediaUrl,
   featuredItemTitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   featuredItemSubtitle: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   storeEnabled: z.boolean().nullish().transform(v => Boolean(v)),
@@ -56,7 +71,7 @@ const InfoSquareSchema = z.object({
 const AboutContentSchema = z.object({
   title: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   content: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  coverImage: z.string().nullish().transform(v => v || ''),
+  coverImage: mediaUrl,
   showMarquee: z.boolean().nullish().transform(v => v === null || v === undefined ? true : Boolean(v)),
   marqueeText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   infoSquares: z.union([z.string(), z.array(InfoSquareSchema), z.unknown()]).nullish(),
@@ -64,10 +79,10 @@ const AboutContentSchema = z.object({
 
 const ArtistSchema = z.object({
   name: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  photo: z.string().nullish(),
-  profilePhoto: z.string().nullish(),
+  photo: mediaUrl,
+  profilePhoto: mediaUrl,
   bio: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  youtube: z.string().nullish(), // URL, no es necesario purificar HTML, el parseo de URL bastaría si es estricto
+  youtube: mediaUrl,
 });
 
 const SessionContentSchema = z.object({
@@ -75,8 +90,8 @@ const SessionContentSchema = z.object({
   title: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   sessionNumber: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   dateText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  gifUrl: z.string().nullish().transform(v => v || ''),
-  trailerUrl: z.string().nullish().transform(v => v || ''),
+  gifUrl: mediaUrl,
+  trailerUrl: mediaUrl,
   spinup: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   showLeftColInfo: z.boolean().nullish().transform(v => Boolean(v)),
   leftColLine1: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
@@ -91,9 +106,9 @@ const VipEventContentSchema = z.object({
   location: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   rules: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
   lineup: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  welcomeImage: z.string().nullish().transform(v => v || ''),
+  welcomeImage: mediaUrl,
   welcomeText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
-  infoImage: z.string().nullish().transform(v => v || ''),
+  infoImage: mediaUrl,
   farewellText: z.string().nullish().transform(v => v ? sanitizeStr(v) : ''),
 });
 
@@ -143,27 +158,22 @@ export async function POST(request: Request) {
     const auth = await requireAdmin()
     if (auth.response) return auth.response
 
-    const body = await request.json();
-    console.log('ADMIN/SAVE: Body recibido:', JSON.stringify(body));
+    const body = await request.json().catch(() => null);
 
     // Validación con Zod (SafeParse para manejo resiliente de errores)
     const result = SaveActionSchema.safeParse(body);
-    console.log('ADMIN/SAVE: Resultado validación:', JSON.stringify(result, null, 2));
 
     if (!result.success) {
-      console.log('ADMIN/SAVE: Error de validación:', JSON.stringify(result.error.flatten(), null, 2));
       return NextResponse.json(
-        { error: 'Payload inválido', details: result.error.flatten() },
+        { error: 'Payload inválido', details: result.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
     const { page, action, content } = result.data;
-    console.log('ADMIN/SAVE: Page:', page, 'Action:', action, 'Content:', JSON.stringify(content));
 
     // 1. Guardar Home
     if (page === 'home') {
-      console.log('ADMIN/SAVE: Guardando HOME', JSON.stringify(content));
       const existing = await prisma.homeContent.findUnique({ where: { id: 'home-singleton' } });
       if (existing) {
         if (existing.heroBackground && existing.heroBackground !== content.heroBackground) await destroyCloudinaryFile(existing.heroBackground);
@@ -202,13 +212,11 @@ export async function POST(request: Request) {
           applicationsEnabled: Boolean(content.applicationsEnabled),
         },
       });
-      console.log('ADMIN/SAVE: HOME guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 
     // 2. Guardar About
     if (page === 'about') {
-      console.log('ADMIN/SAVE: Guardando ABOUT', JSON.stringify(content));
       const existing = await prisma.aboutContent.findUnique({ where: { id: 'about-singleton' } });
       if (existing) {
         if (existing.coverImage && existing.coverImage !== content.coverImage) await destroyCloudinaryFile(existing.coverImage);
@@ -221,7 +229,7 @@ export async function POST(request: Request) {
           coverImage: content.coverImage,
           showMarquee: content.showMarquee,
           marqueeText: content.marqueeText,
-          infoSquares: content.infoSquares ? (typeof content.infoSquares === 'string' ? JSON.parse(content.infoSquares) : content.infoSquares) : undefined,
+          infoSquares: parseInfoSquares(content.infoSquares),
         },
         create: {
           id: 'about-singleton',
@@ -230,10 +238,9 @@ export async function POST(request: Request) {
           coverImage: content.coverImage || '',
           showMarquee: content.showMarquee !== undefined ? content.showMarquee : true,
           marqueeText: content.marqueeText || '',
-          infoSquares: content.infoSquares ? (typeof content.infoSquares === 'string' ? JSON.parse(content.infoSquares) : content.infoSquares) : undefined,
+          infoSquares: parseInfoSquares(content.infoSquares),
         },
       });
-      console.log('ADMIN/SAVE: ABOUT guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 
@@ -241,7 +248,6 @@ export async function POST(request: Request) {
     if (page === 'sessions') {
       const { artists, id, ...sessionData } = content;
       const safeArtists = Array.isArray(artists) ? artists : [];
-      console.log('ADMIN/SAVE: Guardando SESION', { id, sessionData, safeArtists });
 
       if (action === 'new') {
         const newSession = await prisma.session.create({
@@ -267,11 +273,9 @@ export async function POST(request: Request) {
             },
           },
         });
-        console.log('ADMIN/SAVE: SESION nueva guardada:', JSON.stringify(newSession));
         return NextResponse.json({ success: true, data: newSession });
       } else {
         if (!id) {
-          console.log('ADMIN/SAVE: Falta ID para editar sesión');
           return NextResponse.json({ error: 'Falta ID para editar' }, { status: 400 });
         }
 
@@ -324,7 +328,6 @@ export async function POST(request: Request) {
             },
           });
         });
-        console.log('ADMIN/SAVE: SESION editada guardada:', JSON.stringify(updatedSession));
         return NextResponse.json({ success: true, data: updatedSession });
       }
     }
@@ -332,7 +335,6 @@ export async function POST(request: Request) {
 
     // 4. Guardar VipEventContent
     if (page === 'vip') {
-      console.log('ADMIN/SAVE: Guardando VIP', JSON.stringify(content));
       const existing = await prisma.vipEventContent.findUnique({ where: { id: 'vip-singleton' } });
       if (existing) {
         if (existing.welcomeImage && existing.welcomeImage !== content.welcomeImage) await destroyCloudinaryFile(existing.welcomeImage);
@@ -364,13 +366,11 @@ export async function POST(request: Request) {
           farewellText: content.farewellText || '',
         },
       });
-      console.log('ADMIN/SAVE: VIP guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 
     // 5. Guardar WinnerEventContent
     if (page === 'winner') {
-      console.log('ADMIN/SAVE: Guardando WINNER', JSON.stringify(content));
       const existing = await prisma.winnerEventContent.findUnique({ where: { id: 'winner-singleton' } });
       if (existing) {
         if (existing.welcomeImage && existing.welcomeImage !== content.welcomeImage) await destroyCloudinaryFile(existing.welcomeImage);
@@ -402,13 +402,11 @@ export async function POST(request: Request) {
           farewellText: content.farewellText || '',
         },
       });
-      console.log('ADMIN/SAVE: WINNER guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 
     // 6. Guardar EmailTemplateContent
     if (page === 'email') {
-      console.log('ADMIN/SAVE: Guardando EMAIL', JSON.stringify(content));
       const saved = await prisma.emailTemplateContent.upsert({
         where: { id: 'email-singleton' },
         update: {
@@ -431,11 +429,9 @@ export async function POST(request: Request) {
           footer: content.footer || '',
         },
       });
-      console.log('ADMIN/SAVE: EMAIL guardado:', JSON.stringify(saved));
       return NextResponse.json({ success: true, data: saved });
     }
 
-    console.log('ADMIN/SAVE: Página no válida:', page);
     return NextResponse.json({ error: 'Página no válida' }, { status: 400 });
 
   } catch (error) {

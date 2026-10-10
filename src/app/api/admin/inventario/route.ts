@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         return NextResponse.json(newProduct)
     } catch (error) {
         console.error('Error saving product:', error);
-        return NextResponse.json({ error: 'Error del servidor', details: String(error) }, { status: 500 })
+        return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
     }
 }
 

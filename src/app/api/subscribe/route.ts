@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const SubscribeSchema = z.object({
-    email: z.string().email('Email inválido'),
+    email: z.string().trim().toLowerCase().email('Email inválido').max(200),
 });
 
 export async function POST(req: Request) {
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
         if (!parsed.success) {
             return NextResponse.json(
-                { error: 'Email inválido', details: parsed.error.format() },
+                { error: 'Email inválido' },
                 { status: 400 }
             );
         }
@@ -21,15 +21,11 @@ export async function POST(req: Request) {
         const { email } = parsed.data;
 
         // Intentar guardar el suscriptor, ignorando si ya existe
-        const existingSubscriber = await prisma.subscriber.findUnique({
-            where: { email }
+        await prisma.subscriber.upsert({
+            where: { email },
+            update: {},
+            create: { email },
         });
-
-        if (!existingSubscriber) {
-            await prisma.subscriber.create({
-                data: { email }
-            });
-        }
 
         return NextResponse.json({ success: true, message: '¡Gracias por unirte al vacío!' });
     } catch (error) {

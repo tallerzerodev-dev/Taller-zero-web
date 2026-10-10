@@ -60,7 +60,7 @@ export async function POST(req: Request) {
         return NextResponse.json(newOficio)
     } catch (error) {
         console.error('Error creating oficio:', error)
-        return NextResponse.json({ error: 'Error del servidor', details: String(error) }, { status: 500 })
+        return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
     }
 }
 
@@ -95,7 +95,7 @@ export async function PUT(req: Request) {
         return NextResponse.json(updatedOficio)
     } catch (error) {
         console.error('Error updating oficio:', error)
-        return NextResponse.json({ error: 'Error del servidor', details: String(error) }, { status: 500 })
+        return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
     }
 }
 

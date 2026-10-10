@@ -90,7 +90,7 @@ export function PreviewSession({ content }: { content: any }) {
     <div className="w-full max-w-[1200px] mx-auto border border-[#333] bg-black shadow-2xl p-8 relative pointer-events-none">
       <div className="flex justify-between items-end border-b border-[#333] pb-8 mb-8 text-white relative z-10">
         <div>
-          <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter" dangerouslySetInnerHTML={{ __html: (content.title || '').replace(' x ', ' x <br/>') }}></h1>
+          <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter whitespace-pre-line">{(content.title || '').replace(' x ', ' x \n')}</h1>
           <p className="font-mono mt-4 text-[#ffffff] uppercase tracking-widest text-xs font-bold">Sesión #{content.sessionNumber} ó {content.dateText}</p>
         </div>
         {content.showLeftColInfo && (

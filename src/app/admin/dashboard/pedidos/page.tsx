@@ -93,12 +93,15 @@ export default function PedidosPage() {
                                         {order.status === 'SHIPPED' && <span className="bg-blue-900 text-blue-300 text-[10px] px-2 py-1">Enviado</span>}
                                     </h3>
                                     <p className="text-[#888] font-mono text-xs uppercase mb-2">Comprador: {order.customerName} - {order.customerEmail}</p>
+                                    {order.reviewNote && (
+                                        <p className="text-red-400 border border-red-900 bg-red-950/30 font-mono text-xs uppercase p-2 mb-2">Revisar: {order.reviewNote}</p>
+                                    )}
                                     <p className="text-[#555] font-mono text-xs uppercase mb-4">Dirección: {order.shippingAddress || 'No especificada'}</p>
 
                                     <div className="flex flex-col gap-1 border-l-2 border-[#333] pl-4 mb-4">
                                         {order.items.map((item: any) => (
                                             <span key={item.id} className="text-white font-mono text-sm">
-                                                {item.quantity}x {item.product.title} {item.size ? `(${item.size})` : ''} - ${(item.priceAtTime * item.quantity).toLocaleString('es-CL')}
+                                                {item.quantity}x {item.product.title} {item.size ? `(${item.size})` : ''} {item.color ? `(${item.color})` : ''} - ${(item.priceAtTime * item.quantity).toLocaleString('es-CL')}
                                             </span>
                                         ))}
                                     </div>

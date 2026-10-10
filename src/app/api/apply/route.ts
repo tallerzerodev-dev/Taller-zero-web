@@ -1,17 +1,21 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Resend } from 'resend';
+import { escapeHtml } from '@/lib/html';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Evita enlaces javascript: o data: dentro del correo
+const isHttpsUrl = (value: string) => value.startsWith('https://');
+
 const ApplySchema = z.object({
-  realName: z.string().min(2, "El nombre completo es obligatorio"),
-  aka: z.string().min(2, "El AKA es obligatorio"),
-  phone: z.string().min(8, "Ingresa un número de contacto válido"),
-  email: z.string().email("Debe ser un email válido"),
-  socialLink: z.string().url("Debe ser una URL válida (Instagram)"),
-  djMixLink: z.string().url("Debe ser una URL válida al mix"),
-  message: z.string().min(10, "Cuéntanos un poco más sobre ti (mínimo 10 caracteres)"),
+  realName: z.string().trim().min(2, "El nombre completo es obligatorio").max(120),
+  aka: z.string().trim().min(2, "El AKA es obligatorio").max(80),
+  phone: z.string().trim().min(8, "Ingresa un número de contacto válido").max(30),
+  email: z.string().trim().email("Debe ser un email válido").max(200),
+  socialLink: z.string().trim().url("Debe ser una URL válida (Instagram)").max(300).refine(isHttpsUrl, "El enlace debe comenzar con https://"),
+  djMixLink: z.string().trim().url("Debe ser una URL válida al mix").max(300).refine(isHttpsUrl, "El enlace debe comenzar con https://"),
+  message: z.string().trim().min(10, "Cuéntanos un poco más sobre ti (mínimo 10 caracteres)").max(3000),
 });
 
 export async function POST(request: Request) {
@@ -24,13 +28,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.format() }, { status: 400 });
     }
 
-    const data = parsed.data;
+    // Todo lo que entra al HTML del correo va escapado
+    const data = Object.fromEntries(
+      Object.entries(parsed.data).map(([key, value]) => [key, escapeHtml(value)])
+    ) as Record<keyof typeof parsed.data, string>;
 
     // Enviar email vía Resend
-    const { data: emailData, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: 'Taller Zero <no-reply@taller-zero.cl>',
       to: ['contacto.taller0@gmail.com'],
-      subject: `Nueva Postulación DJ: ${data.aka} (${data.realName})`,
+      subject: `Nueva Postulación DJ: ${parsed.data.aka} (${parsed.data.realName})`,
+      replyTo: parsed.data.email,
       html: `
         <div style="font-family: monospace; background-color: #000; color: #fff; padding: 20px;">
           <h2 style="color: #fff; text-transform: uppercase;">NUEVA POSTULACIÓN TALLER ZERO</h2>
@@ -52,7 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Error interno enviando correo' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data: emailData });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error en POST /api/apply:', error);
     return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
