@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { authOptions } from '@/lib/auth'
-import { getServerSession } from 'next-auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { z } from 'zod'
 
 const OficioSchema = z.object({
@@ -17,6 +16,9 @@ const OficioSchema = z.object({
 })
 
 export async function GET() {
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
+
     try {
         const oficios = await prisma.oficio.findMany({
             orderBy: { createdAt: 'desc' }
@@ -29,8 +31,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     try {
         const body = await req.json()
@@ -63,8 +65,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     try {
         const body = await req.json()
@@ -98,8 +100,8 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { authOptions } from '@/lib/auth'
-import { getServerSession } from 'next-auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { z } from 'zod'
 
 const ProductSchema = z.object({
@@ -18,15 +17,23 @@ const ProductSchema = z.object({
 })
 
 export async function GET() {
-    const products = await prisma.product.findMany({
-        orderBy: { createdAt: 'desc' }
-    })
-    return NextResponse.json(products)
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
+
+    try {
+        const products = await prisma.product.findMany({
+            orderBy: { createdAt: 'desc' }
+        })
+        return NextResponse.json(products)
+    } catch (error) {
+        console.error('Error fetching products:', error)
+        return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
+    }
 }
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     try {
         const body = await req.json()
@@ -60,8 +67,8 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     try {
         const body = await req.json()
@@ -95,15 +102,20 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
 
     if (!id) return NextResponse.json({ error: 'Falta ID' }, { status: 400 })
 
-    await prisma.product.delete({ where: { id } })
-
-    return NextResponse.json({ success: true })
+    try {
+        await prisma.product.delete({ where: { id } })
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        // onDelete: Restrict en OrderItem: un producto con ventas no se puede borrar
+        console.error('Error deleting product:', error)
+        return NextResponse.json({ error: 'No se pudo eliminar. Si el producto tiene pedidos asociados, márcalo como no disponible.' }, { status: 409 })
+    }
 }

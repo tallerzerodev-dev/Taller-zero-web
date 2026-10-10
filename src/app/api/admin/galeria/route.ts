@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdmin } from '@/lib/require-admin'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -15,6 +16,9 @@ const PhotoDeleteSchema = z.object({
 })
 
 export async function GET(request: Request) {
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
+
     try {
         const photos = await prisma.photo.findMany({
             orderBy: { createdAt: 'desc' },
@@ -30,6 +34,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
+
     try {
         const body = await request.json()
         const parsed = PhotoCreateSchema.safeParse(body)
@@ -54,6 +61,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
+
     try {
         const { searchParams } = new URL(request.url)
         const id = searchParams.get('id')

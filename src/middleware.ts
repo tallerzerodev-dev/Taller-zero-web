@@ -1,6 +1,7 @@
 import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { isAdminEmail } from '@/lib/admin'
 
 export async function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl
@@ -47,10 +48,7 @@ export async function middleware(request: NextRequest) {
         }
 
         // Verificar si el usuario autenticado es admin
-        const allowedAdmins = (process.env.ADMIN_EMAILS || 'admin@tallerzero.com').split(',').map(e => e.trim().toLowerCase());
-        const userEmail = token.email?.toLowerCase();
-
-        if (!userEmail || !allowedAdmins.includes(userEmail)) {
+        if (!isAdminEmail(token.email)) {
             // Usuario conectado pero NO es admin, redirigir o devolver error
             if (isApiAdminRoute) {
                 return NextResponse.json({ error: 'Acceso denegado' }, { status: 403 })

@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
-import { authOptions } from '@/lib/auth';
-import { getServerSession } from 'next-auth';
+import { requireAdmin } from '@/lib/require-admin'
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -141,10 +140,8 @@ const SaveActionSchema = z.discriminatedUnion('page', [
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     const body = await request.json();
     console.log('ADMIN/SAVE: Body recibido:', JSON.stringify(body));

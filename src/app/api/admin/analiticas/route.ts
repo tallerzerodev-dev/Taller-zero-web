@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { authOptions } from '@/lib/auth'
-import { getServerSession } from 'next-auth'
+import { requireAdmin } from '@/lib/require-admin'
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 
 export async function GET() {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    const auth = await requireAdmin()
+    if (auth.response) return auth.response
 
     const totalProducts = await prisma.product.count()
     const totalStockObj = await prisma.product.aggregate({ _sum: { stock: true } })
