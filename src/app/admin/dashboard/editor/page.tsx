@@ -216,7 +216,8 @@ function EditorContent() {
           cloudDataForm.append('api_key', sigData.apiKey);
           cloudDataForm.append('timestamp', String(sigData.timestamp));
           cloudDataForm.append('signature', sigData.signature);
-          cloudDataForm.append('folder', 'taller-zero');
+          cloudDataForm.append('folder', sigData.folder);
+          cloudDataForm.append('allowed_formats', sigData.allowedFormats);
 
           // 3. Subir directo a la nube de Cloudinary
           console.log('[VIDEO UPLOAD] Enviando a Cloudinary...');
