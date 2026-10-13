@@ -78,7 +78,8 @@ export default async function RootLayout({
 }) {
   const [homeData, publishedEvents] = await Promise.all([
     prisma.homeContent.findUnique({ where: { id: 'home-singleton' } }),
-    prisma.event.count({ where: { status: 'PUBLISHED', startsAt: { gte: new Date(Date.now() - 8 * 60 * 60 * 1000) } } }),
+    // Si la consulta falla (por ejemplo, el esquema de eventos aún no está aplicado) el sitio sigue funcionando sin el enlace
+    prisma.event.count({ where: { status: 'PUBLISHED', startsAt: { gte: new Date(Date.now() - 8 * 60 * 60 * 1000) } } }).catch(() => 0),
   ])
 
   return (
