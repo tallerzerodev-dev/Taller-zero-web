@@ -271,6 +271,31 @@ export async function cancelPendingTicketOrder(orderId: string): Promise<void> {
     });
 }
 
+// Cancela un evento: corta la venta, anula las entradas vigentes y suelta las compras en curso.
+// Las órdenes pagadas quedan marcadas para reembolsar a mano en Mercado Pago.
+export async function cancelEvent(eventId: string): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+        await tx.event.update({ where: { id: eventId }, data: { status: 'CANCELLED' } });
+        await tx.ticket.updateMany({ where: { eventId, status: 'VALID' }, data: { status: 'CANCELLED' } });
+        await tx.ticketOrder.updateMany({
+            where: { eventId, status: 'PAID' },
+            data: { reviewNote: 'EVENTO CANCELADO: reembolsar en Mercado Pago.' },
+        });
+
+        const pending = await tx.ticketOrder.findMany({
+            where: { eventId, status: 'PENDING' },
+            select: { id: true, items: { select: { ticketTypeId: true, quantity: true } } },
+        });
+        for (const order of pending) {
+            const updated = await tx.ticketOrder.updateMany({
+                where: { id: order.id, status: 'PENDING' },
+                data: { status: 'CANCELLED' },
+            });
+            if (updated.count === 1) await releaseReserved(tx, order.items);
+        }
+    });
+}
+
 // ---------------------------------------------------------------------------
 // Emisión de entradas
 // ---------------------------------------------------------------------------

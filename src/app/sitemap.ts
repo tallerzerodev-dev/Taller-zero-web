@@ -63,5 +63,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Sitemap: error fetching sessions', e)
   }
 
+  try {
+    const events = await prisma.event.findMany({
+      where: { status: 'PUBLISHED', startsAt: { gte: new Date() } },
+      select: { slug: true, updatedAt: true },
+    })
+    if (events.length > 0) {
+      dynamicRoutes.push({ url: `${baseUrl}/eventos`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 })
+    }
+    for (const event of events) {
+      dynamicRoutes.push({
+        url: `${baseUrl}/eventos/${event.slug}`,
+        lastModified: event.updatedAt,
+        changeFrequency: 'daily',
+        priority: 0.9,
+      })
+    }
+  } catch (e) {
+    console.error('Sitemap: error fetching events', e)
+  }
+
   return [...staticRoutes, ...dynamicRoutes]
 }

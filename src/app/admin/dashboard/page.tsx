@@ -40,6 +40,14 @@ export default function AdminDashboardPage() {
             </FadeIn>
           </Link>
 
+          <Link href="/admin/dashboard/eventos" className="block">
+            <FadeIn className="bg-[#0a0a0a] border border-[#222222] p-8 hover:border-white transition-colors group cursor-pointer flex flex-col h-full">
+              <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-white">Eventos & Tickets</h2>
+              <p className="text-[#888888] font-mono text-sm leading-relaxed mb-6 flex-1">Crea eventos, define tramos y cupos, revisa las ventas de entradas y controla el ingreso en puerta.</p>
+              <span className="text-white font-mono text-xs uppercase tracking-widest border-b border-white pb-1 w-fit">Administrar →</span>
+            </FadeIn>
+          </Link>
+
           <Link href="/admin/dashboard/analiticas" className="block">
             <FadeIn className="bg-[#0a0a0a] border border-[#222222] p-8 hover:border-white transition-colors group cursor-pointer flex flex-col h-full">
               <h2 className="text-2xl font-bold uppercase tracking-widest mb-4 group-hover:translate-x-2 transition-transform text-white">Analíticas</h2>

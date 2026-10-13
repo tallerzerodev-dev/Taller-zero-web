@@ -76,16 +76,17 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const homeData = await prisma.homeContent.findUnique({
-    where: { id: 'home-singleton' }
-  })
+  const [homeData, publishedEvents] = await Promise.all([
+    prisma.homeContent.findUnique({ where: { id: 'home-singleton' } }),
+    prisma.event.count({ where: { status: 'PUBLISHED', startsAt: { gte: new Date(Date.now() - 8 * 60 * 60 * 1000) } } }),
+  ])
 
   return (
     <html lang="es" className="dark scroll-smooth">
       <body className={`${spaceMono.variable} ${outfit.variable} font-sans antialiased bg-black text-white min-h-screen flex flex-col relative`}>
         <Providers>
           <Noise />
-          <Navbar storeEnabled={homeData?.storeEnabled || false} />
+          <Navbar storeEnabled={homeData?.storeEnabled || false} eventsEnabled={publishedEvents > 0} />
           <div className="pt-20 flex-1 flex flex-col w-full">
             {children}
             <Analytics />

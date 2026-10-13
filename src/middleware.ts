@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
 
     // 0. Páginas públicas que se abren con un token de invitación: frenar a quien pruebe tokens en masa.
     // /scan y /api/qr quedan fuera: no revelan nada sin sesión de staff y en la puerta comparten IP.
-    const isTokenRoute = ['/vip/', '/winner/'].some(prefix => pathname.startsWith(prefix))
+    const isTokenRoute = ['/vip/', '/winner/', '/entradas/', '/eventos/resultado/'].some(prefix => pathname.startsWith(prefix))
     if (isTokenRoute && !(await checkRateLimit('token', request.headers))) {
         return new NextResponse('Demasiados intentos, espera un minuto.', { status: 429 })
     }

@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import Image from "next/image";
 import { FadeIn } from "@/components/ui/Animations";
 import LogoutButton from "./LogoutButton";
+import Link from "next/link";
+import { formatEventDateTime } from "@/lib/dates";
 
 export default async function ProfilePage() {
     const session = await getServerSession(authOptions);
@@ -21,6 +23,15 @@ export default async function ProfilePage() {
         // Fallback in case the user wasn't upserted correctly
         redirect("/login");
     }
+
+    // El correo de Google está verificado: se muestran las compras hechas con sesión o a ese mismo correo
+    const email = session.user.email.toLowerCase();
+    const ticketOrders = await prisma.ticketOrder.findMany({
+        where: { status: 'PAID', OR: [{ userEmail: email }, { buyerEmail: email }] },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, accessToken: true, event: { select: { title: true, startsAt: true } }, _count: { select: { tickets: true } } },
+        take: 20,
+    });
 
     return (
         <main className="flex-1 flex flex-col bg-black min-h-screen pt-32 pb-24 px-6 text-white">
@@ -74,6 +85,25 @@ export default async function ProfilePage() {
                                 </div>
                             </div>
                             
+                            {ticketOrders.length > 0 && (
+                                <div className="bg-[#050505] border border-[#222] p-8">
+                                    <h3 className="font-mono text-[10px] text-[#555] tracking-widest uppercase mb-6 border-b border-[#222] pb-2">Mis Entradas</h3>
+                                    <ul className="space-y-4">
+                                        {ticketOrders.map(order => (
+                                            <li key={order.id}>
+                                                <Link href={`/entradas/${order.accessToken}`} className="flex justify-between items-center gap-4 font-mono uppercase tracking-widest border border-[#222] p-4 hover:border-white transition-colors">
+                                                    <span>
+                                                        <span className="block text-white text-sm">{order.event.title}</span>
+                                                        <span className="block text-[#888] text-[10px] mt-1">{formatEventDateTime(order.event.startsAt)}</span>
+                                                    </span>
+                                                    <span className="text-white text-xs whitespace-nowrap">{order._count.tickets} QR →</span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
                             <div className="mt-auto self-end">
                                 <LogoutButton />
                             </div>

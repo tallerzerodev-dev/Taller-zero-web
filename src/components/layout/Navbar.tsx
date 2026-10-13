@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useCartStore } from '@/store/useCartStore'
 
-export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
+export function Navbar({ storeEnabled = false, eventsEnabled = false }: { storeEnabled?: boolean; eventsEnabled?: boolean }) {
     const [isOpen, setIsOpen] = useState(false)
     const pathname = usePathname()
     const { data: session } = useSession()
@@ -45,6 +45,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
                 {/* Desktop Links */}
                 <div className="hidden md:flex items-center gap-8 font-mono text-sm tracking-widest uppercase">
                     <Link href="/sessions" className="hover:text-gray-400 transition-colors">Sesiones</Link>
+                    {eventsEnabled && <Link href="/eventos" className="hover:text-gray-400 transition-colors">Eventos</Link>}
                     <Link href="/galeria" className="hover:text-gray-400 transition-colors">Galería</Link>
                     <Link href="/oficios" className="hover:text-gray-400 transition-colors">Oficios</Link>
                     {storeEnabled && <Link href="/store" className="hover:text-gray-400 transition-colors">Tienda</Link>}
@@ -93,6 +94,7 @@ export function Navbar({ storeEnabled = false }: { storeEnabled?: boolean }) {
             {isOpen && (
                 <div className="md:hidden border-t-2 border-gray-800 bg-black absolute w-full left-0 top-20 flex flex-col font-mono text-lg uppercase tracking-widest">
                     <Link href="/sessions" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Sesiones</Link>
+                    {eventsEnabled && <Link href="/eventos" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Eventos</Link>}
                     <Link href="/galeria" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Galería</Link>
                     <Link href="/oficios" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Oficios</Link>
                     {storeEnabled && <Link href="/store" onClick={() => setIsOpen(false)} className="p-6 border-b border-gray-800 hover:bg-gray-900">Tienda</Link>}

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import QRCode from 'qrcode'
+import { TICKET_CODE_PATTERN } from '@/lib/tickets'
 
 export async function GET(request: Request, { params }: { params: { token: string } }) {
   try {
     const { token } = params
 
-    // Solo se generan QR para tokens con formato de invitación
-    if (!/^tz-vip-[a-f0-9]{8,32}$/.test(token)) {
+    // Solo se generan QR para tokens con formato de invitación o de entrada
+    if (!/^tz-vip-[a-f0-9]{8,32}$/.test(token) && !TICKET_CODE_PATTERN.test(token)) {
       return new NextResponse('Token inválido', { status: 400 })
     }
     

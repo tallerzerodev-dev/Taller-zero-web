@@ -14,6 +14,11 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'res.cloudinary.com',
             },
+            {
+                // Avatar de la cuenta de Google en /profile
+                protocol: 'https',
+                hostname: 'lh3.googleusercontent.com',
+            },
         ],
     },
     async headers() {
@@ -49,7 +54,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Permissions-Policy',
-                        value: 'camera=(), microphone=(), geolocation=()',
+                        value: 'camera=(self), microphone=(), geolocation=()',
                     },
                     {
                         key: 'Content-Security-Policy',
