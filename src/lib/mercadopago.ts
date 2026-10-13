@@ -5,8 +5,12 @@ const PRODUCTION_URL = 'https://www.taller-zero.cl';
 // Tipos de pago cuyo comprobante vale como boleta (Res. Ex. SII N°176/2020). El resto exige boleta manual.
 export const CARD_PAYMENT_TYPES = ['credit_card', 'debit_card', 'prepaid_card'];
 
+// En producción solo vale la credencial explícita MERCADOPAGO_ACCESS_TOKEN: así un valor "_TEST" olvidado en
+// Vercel no puede cobrar sin que nadie lo note. El respaldo MERCADOPAGO_ACCESS_TOKEN_TEST es solo para desarrollo.
 export function getMercadoPagoAccessToken(): string {
-    return process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN_TEST || '';
+    const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    if (token) return token;
+    return process.env.NODE_ENV === 'production' ? '' : process.env.MERCADOPAGO_ACCESS_TOKEN_TEST || '';
 }
 
 // En producción manda NEXT_PUBLIC_SITE_URL (o el dominio oficial). En desarrollo (next dev) el sitio es
