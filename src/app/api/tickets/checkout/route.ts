@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/ratelimit';
-import { createCardOnlyPreference } from '@/lib/mercadopago';
+import { createCardOnlyPreference, getMercadoPagoAccessToken } from '@/lib/mercadopago';
 import {
     cancelPendingTicketOrder,
     createTicketOrder,
@@ -37,6 +37,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Datos de compra inválidos. Revisa el formulario e intenta de nuevo.' }, { status: 400 });
         }
         const data = parsed.data;
+
+        // Sin credencial de cobro no se reserva nada: la reserva retendría cupo para una compra que no puede pagarse
+        if (!getMercadoPagoAccessToken()) {
+            console.error('ERROR: falta MERCADOPAGO_ACCESS_TOKEN; no se puede cobrar');
+            return NextResponse.json({ error: 'La venta de entradas no está disponible en este momento.' }, { status: 503 });
+        }
+
         const session = await getServerSession(authOptions);
         const buyerName = `${data.firstName} ${data.lastName}`;
 
