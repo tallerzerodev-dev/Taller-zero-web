@@ -131,11 +131,12 @@ export async function POST(req: Request) {
         }
 
         try {
-            const preferenceId = await createCardOnlyPreference({
+            const { id: preferenceId } = await createCardOnlyPreference({
                 items: mpItems,
                 payer: { name: data.customerName, email: data.email },
                 externalReference: order.id,
                 resultPath: '/checkout/result',
+                requestUrl: req.url,
             });
 
             // Return the preference ID for the Wallet component

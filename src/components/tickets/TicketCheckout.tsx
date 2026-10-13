@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react'
 import { formatCLP } from '@/lib/dates'
 
 interface Line {
@@ -39,17 +38,12 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
 
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [preferenceId, setPreferenceId] = useState<string | null>(null)
+    const [payUrl, setPayUrl] = useState<string | null>(null)
     const [expiresAt, setExpiresAt] = useState<number | null>(null)
     const [remaining, setRemaining] = useState(0)
 
     const total = lines.reduce((acc, l) => acc + l.price * l.quantity, 0)
     const expired = expiresAt !== null && remaining <= 0
-
-    useEffect(() => {
-        const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY_TEST || ''
-        if (publicKey) initMercadoPago(publicKey, { locale: 'es-CL' })
-    }, [])
 
     // Si hay sesión iniciada se propone ese correo, pero se puede cambiar
     useEffect(() => {
@@ -93,10 +87,10 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
                 }),
             })
             const result = await res.json().catch(() => ({}))
-            if (!res.ok || !result.preferenceId) {
+            if (!res.ok || !result.initPoint) {
                 throw new Error(result.error || 'No se pudo generar el pago.')
             }
-            setPreferenceId(result.preferenceId)
+            setPayUrl(result.initPoint)
             setExpiresAt(new Date(result.expiresAt).getTime())
         } catch (err: any) {
             setError(err.message || 'Error inesperado')
@@ -105,7 +99,9 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
         }
     }
 
-    const step = preferenceId ? 2 : 1
+    const step = payUrl ? 2 : 1
+    // En tu computador Mercado Pago no puede devolverte solo al sitio: hay que pulsar su botón "Volver al sitio"
+    const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
 
     return (
         <div className="w-full max-w-5xl mx-auto">
@@ -177,11 +173,13 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
                                 <>
                                     <p className="font-mono text-xs uppercase tracking-widest text-[#888] mb-2">Tus entradas están reservadas por</p>
                                     <p className="font-mono text-4xl text-white font-bold mb-6" aria-live="off">{formatRemaining(remaining)}</p>
-                                    <p className="font-mono text-[10px] uppercase tracking-widest text-[#555] mb-6">El pago se hace en Mercado Pago, solo con tarjeta de crédito, débito o prepago.</p>
-                                    <Wallet
-                                        initialization={{ preferenceId: preferenceId!, redirectMode: 'self' }}
-                                        customization={{ texts: { action: 'pay', valueProp: 'security_safety' } } as any}
-                                    />
+                                    <p className="font-mono text-[10px] uppercase tracking-widest text-[#555] mb-6">Pagarás en la página segura de Mercado Pago y volverás aquí con tus entradas.</p>
+                                    <a href={payUrl!} className="block w-full text-center py-5 bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-[#ccc] transition-colors">
+                                        PAGAR CON MERCADO PAGO →
+                                    </a>
+                                    {isLocalhost && (
+                                        <p className="font-mono text-[10px] uppercase tracking-widest text-yellow-500 mt-4 leading-relaxed">Modo desarrollo: al terminar el pago, pulsa «Volver al sitio» en Mercado Pago para recibir tus entradas.</p>
+                                    )}
                                 </>
                             )}
                         </div>

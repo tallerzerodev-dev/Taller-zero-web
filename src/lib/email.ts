@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import QRCode from 'qrcode';
 import { escapeHtml } from './html';
 import { getSiteUrl } from './mercadopago';
 import { formatEventDateTime } from './dates';
@@ -105,15 +106,28 @@ interface TicketsEmailOrder {
   tickets: { code: string; folio: number; ticketType: { name: string } }[];
 }
 
-// Correo con las entradas: un QR por entrada. El QR solo contiene el enlace de validación, sin datos personales.
-export async function sendTicketsEmail(order: TicketsEmailOrder) {
-  try {
-    const siteUrl = getSiteUrl();
-    const orderNumber = order.id.slice(-6).toUpperCase();
-    const ticketsUrl = `${siteUrl}/entradas/${order.accessToken}`;
-    const title = escapeHtml(order.event.title);
+// Arma el correo con las entradas. Cada QR va embebido en el mensaje (adjunto en línea con "cid:"),
+// así se ve en cualquier cliente de correo y no depende de que el sitio sea público para cargar imágenes.
+// El QR solo contiene el enlace de validación, sin datos personales.
+export async function buildTicketsEmail(order: TicketsEmailOrder) {
+  const siteUrl = getSiteUrl();
+  const orderNumber = order.id.slice(-6).toUpperCase();
+  const ticketsUrl = `${siteUrl}/entradas/${order.accessToken}`;
+  const title = escapeHtml(order.event.title);
 
-    const ticketsHtml = order.tickets.map((ticket, index) => `
+  const qrBuffers = await Promise.all(
+    order.tickets.map(ticket =>
+      QRCode.toBuffer(`${siteUrl}/scan/${ticket.code}`, { width: 440, margin: 2, color: { dark: '#000000', light: '#ffffff' } })
+    )
+  );
+  const attachments = order.tickets.map((ticket, index) => ({
+    filename: `entrada-${String(ticket.folio).padStart(4, '0')}.png`,
+    content: qrBuffers[index],
+    contentType: 'image/png',
+    contentId: `qr-${ticket.folio}`,
+  }));
+
+  const ticketsHtml = order.tickets.map((ticket, index) => `
       <tr>
         <td style="padding: 0 20px 20px 20px;">
           <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #111111; border: 1px solid #333333;">
@@ -125,14 +139,14 @@ export async function sendTicketsEmail(order: TicketsEmailOrder) {
                 <p style="color: #ffffff; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 20px 0; font-weight: bold;">
                   ${escapeHtml(ticket.ticketType.name)}
                 </p>
-                <img src="${siteUrl}/api/qr/${ticket.code}" alt="Código QR de la entrada ${index + 1}" width="220" height="220" style="display: block; width: 220px; height: 220px; margin: 0 auto; border: 10px solid #ffffff;" />
+                <img src="cid:qr-${ticket.folio}" alt="Código QR de la entrada ${index + 1}" width="220" height="220" style="display: block; width: 220px; height: 220px; margin: 0 auto; border: 10px solid #ffffff;" />
               </td>
             </tr>
           </table>
         </td>
       </tr>`).join('');
 
-    const html = `
+  const html = `
       <!DOCTYPE html>
       <html>
       <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${title}</title></head>
@@ -174,15 +188,27 @@ export async function sendTicketsEmail(order: TicketsEmailOrder) {
       </body>
       </html>`;
 
+  return {
+    subject: `Tus entradas para ${order.event.title} - Orden #${orderNumber}`,
+    html,
+    attachments,
+  };
+}
+
+export async function sendTicketsEmail(order: TicketsEmailOrder) {
+  try {
+    const { subject, html, attachments } = await buildTicketsEmail(order);
+
     const { error } = await resend.emails.send({
       from: `Taller Zero <${FROM_EMAIL}>`,
       to: order.buyerEmail,
-      subject: `Tus entradas para ${order.event.title} - Orden #${orderNumber}`,
+      subject,
       html,
+      attachments,
     });
 
     if (error) {
-      console.error(`Error enviando entradas de la orden ${orderNumber}:`, error.message);
+      console.error(`Error enviando entradas de la orden ${order.id.slice(-6).toUpperCase()}:`, error.message);
       return { success: false };
     }
     return { success: true };

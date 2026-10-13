@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import type { Prisma, TicketType } from '@prisma/client';
 import { prisma } from './prisma';
-import { isCardPayment, type MercadoPagoPayment } from './mercadopago';
+import { isCardPayment, searchPaymentsByReference, type MercadoPagoPayment } from './mercadopago';
 
 // Prefijo de la referencia externa en Mercado Pago: distingue una orden de entradas de una de la tienda
 export const TICKET_ORDER_REF_PREFIX = 'tk_';
@@ -435,6 +435,24 @@ export async function syncTicketOrderFromPayment(payment: MercadoPagoPayment): P
     // Un pago rechazado no anula la orden: el comprador puede reintentar con otra tarjeta
     // mientras dure la reserva. Si no paga, la orden vence sola.
     return { outcome: 'pending', orderId };
+}
+
+// Cuadra una orden consultando a Mercado Pago por su referencia, sin depender del aviso (webhook) ni
+// del parámetro payment_id de la URL de retorno. Es idempotente, igual que syncTicketOrderFromPayment.
+export async function syncTicketOrderByReference(orderId: string): Promise<TicketSyncOutcome> {
+    const payments = await searchPaymentsByReference(`${TICKET_ORDER_REF_PREFIX}${orderId}`);
+
+    // Primero los aprobados; los pagos rechazados o pendientes no cambian la orden
+    const rank: Record<string, number> = { approved: 0, refunded: 1, charged_back: 1 };
+    const relevant = payments
+        .filter(p => p.status !== undefined && p.status in rank)
+        .sort((a, b) => rank[a.status!] - rank[b.status!]);
+
+    let outcome: TicketSyncOutcome = 'pending';
+    for (const payment of relevant) {
+        outcome = (await syncTicketOrderFromPayment(payment)).outcome;
+    }
+    return outcome;
 }
 
 // ---------------------------------------------------------------------------

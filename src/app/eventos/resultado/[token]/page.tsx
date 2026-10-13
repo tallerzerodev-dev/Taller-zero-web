@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { syncPayment } from '@/lib/payments'
+import { syncTicketOrderByReference } from '@/lib/tickets'
 import { AutoRefresh } from './AutoRefresh'
 
 export const dynamic = 'force-dynamic'
@@ -18,9 +19,18 @@ export default async function TicketResultPage({ params, searchParams }: { param
   // Los parámetros de la URL no deciden nada: el ID de pago solo se usa para preguntarle a
   // Mercado Pago, y lo que se muestra es el estado guardado en la base.
   const paymentId = searchParams.payment_id || searchParams.collection_id || ''
-  if (/^\d{1,20}$/.test(paymentId)) {
+  const current = await prisma.ticketOrder.findUnique({
+    where: { accessToken: params.token },
+    select: { id: true, status: true },
+  })
+  if (!current) notFound()
+
+  // Solo se consulta a Mercado Pago mientras la orden no esté resuelta. Si la URL trae un ID de pago se
+  // usa ese; si no (o si el aviso nunca llegó) se buscan los pagos de la orden por su referencia.
+  if (current.status === 'PENDING' || current.status === 'EXPIRED') {
     try {
-      await syncPayment(paymentId)
+      if (/^\d{1,20}$/.test(paymentId)) await syncPayment(paymentId)
+      else await syncTicketOrderByReference(current.id)
     } catch (error) {
       console.error('Error verificando el pago de entradas en la página de resultado', error)
     }

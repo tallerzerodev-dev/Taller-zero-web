@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         });
 
         try {
-            const preferenceId = await createCardOnlyPreference({
+            const { id: preferenceId, initPoint } = await createCardOnlyPreference({
                 items: lines.map(({ item, type }) => ({
                     id: type.id,
                     title: `${event.title} - ${type.name}`,
@@ -62,9 +62,10 @@ export async function POST(req: Request) {
                 resultPath: `/eventos/resultado/${order.accessToken}`,
                 // Mercado Pago deja de aceptar el pago cuando vence la reserva del cupo
                 expiresAt: order.expiresAt,
+                requestUrl: req.url,
             });
 
-            return NextResponse.json({ preferenceId, expiresAt: order.expiresAt.toISOString() });
+            return NextResponse.json({ preferenceId, initPoint, expiresAt: order.expiresAt.toISOString() });
         } catch (error) {
             // Sin cobro no tiene sentido retener el cupo
             await cancelPendingTicketOrder(order.id);
