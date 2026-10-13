@@ -77,8 +77,8 @@ export function TicketSelector({ slug, tiers, maxPerOrder }: Props) {
                             )}
 
                             {tier.state !== 'INFO' && tier.state !== 'UPCOMING' && (
-                                <div className="w-full h-[3px] bg-[#222] mt-5" role="progressbar" aria-valuenow={tier.percentSold} aria-valuemin={0} aria-valuemax={100} aria-label={`Avance de venta de ${tier.name}`}>
-                                    <div className="h-full bg-white transition-all duration-700" style={{ width: `${tier.percentSold}%` }} />
+                                <div className="w-full h-[3px] bg-[#222] mt-5" role="progressbar" aria-valuenow={tier.percentLeft} aria-valuemin={0} aria-valuemax={100} aria-label={`Entradas que quedan de ${tier.name}`}>
+                                    <div className={`h-full transition-all duration-700 ${tier.low ? 'bg-red-600' : 'bg-white'}`} style={{ width: `${tier.percentLeft}%` }} />
                                 </div>
                             )}
                         </div>

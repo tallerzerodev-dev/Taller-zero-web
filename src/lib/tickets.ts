@@ -51,13 +51,17 @@ export function getTierState(tier: TierFields, eventStartsAt: Date, now: Date = 
     return 'AVAILABLE';
 }
 
+// Bajo este porcentaje de entradas restantes, la barra pública se pinta de rojo
+export const LOW_STOCK_PERCENT = 20;
+
 // Lo único que se envía al navegador sobre un tramo: nunca los contadores de vendidas ni el cupo.
 export interface TierView {
     id: string;
     name: string;
     price: number;
     state: TierState;
-    percentSold: number;
+    percentLeft: number; // 100 = recién abierto, 0 = agotado: baja con cada compra
+    low: boolean;        // quedan pocas: la barra se muestra en rojo
     maxSelectable: number;
 }
 
@@ -68,12 +72,15 @@ export function toTierView(
 ): TierView {
     const state = getTierState(tier, event.startsAt, now);
     const available = Math.max(0, tier.capacity - tier.sold - tier.reserved);
+    // Solo cuentan las compras pagadas: una reserva en curso no mueve la barra hasta que se paga
+    const percentLeft = tier.capacity <= 0 ? 0 : Math.max(0, Math.min(100, Math.round(((tier.capacity - tier.sold) / tier.capacity) * 100)));
     return {
         id: tier.id,
         name: tier.name,
         price: tier.price,
         state,
-        percentSold: tier.isInfoOnly || tier.capacity <= 0 ? 0 : Math.min(100, Math.round((tier.sold / tier.capacity) * 100)),
+        percentLeft: tier.isInfoOnly ? 0 : percentLeft,
+        low: !tier.isInfoOnly && (state === 'AVAILABLE' || state === 'HELD') && percentLeft <= LOW_STOCK_PERCENT,
         maxSelectable: state === 'AVAILABLE' ? Math.min(event.maxPerOrder, available) : 0,
     };
 }
