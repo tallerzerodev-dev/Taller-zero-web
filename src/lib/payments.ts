@@ -11,6 +11,9 @@ export function getSiteUrl(): string {
     return (process.env.NEXT_PUBLIC_SITE_URL || PRODUCTION_URL).replace(/\/$/, '');
 }
 
+// Tipos de pago cuyo comprobante vale como boleta (Res. Ex. SII N°176/2020). El resto exige boleta manual.
+const CARD_PAYMENT_TYPES = ['credit_card', 'debit_card', 'prepaid_card'];
+
 export type SyncResult =
     | { outcome: 'paid' | 'already_processed' | 'cancelled' | 'pending' | 'amount_mismatch'; orderId: string }
     | { outcome: 'ignored'; orderId?: undefined };
@@ -56,6 +59,12 @@ export async function syncOrderFromPayment(paymentId: string): Promise<SyncResul
             });
             if (updated.count === 0) return false;
 
+            const reviewNotes: string[] = [];
+
+            if (!payment.payment_type_id || !CARD_PAYMENT_TYPES.includes(payment.payment_type_id)) {
+                reviewNotes.push(`Pagada con "${payment.payment_type_id ?? 'medio desconocido'}" (no es tarjeta): el comprobante de Mercado Pago NO vale como boleta. Emitir boleta manual.`);
+            }
+
             const withoutStock: string[] = [];
             for (const item of order.items) {
                 const decremented = await tx.product.updateMany({
@@ -65,9 +74,12 @@ export async function syncOrderFromPayment(paymentId: string): Promise<SyncResul
                 if (decremented.count === 0) withoutStock.push(item.productId);
             }
             if (withoutStock.length > 0) {
+                reviewNotes.push(`Pagada sin stock suficiente para: ${withoutStock.join(', ')}. Reponer o reembolsar.`);
+            }
+            if (reviewNotes.length > 0) {
                 await tx.order.update({
                     where: { id: orderId },
-                    data: { reviewNote: `Pagada sin stock suficiente para: ${withoutStock.join(', ')}. Reponer o reembolsar.` },
+                    data: { reviewNote: reviewNotes.join(' | ') },
                 });
             }
             return true;

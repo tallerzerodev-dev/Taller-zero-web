@@ -155,6 +155,11 @@ export async function POST(req: Request) {
                         pending: resultUrl
                     },
                     auto_return: 'approved',
+                    // Solo tarjetas: el comprobante de pago con tarjeta vale como boleta ante el SII
+                    // (Res. Ex. SII N°176/2020). Efectivo, transferencias y cajeros exigirían boleta manual.
+                    payment_methods: {
+                        excluded_payment_types: [{ id: 'ticket' }, { id: 'atm' }, { id: 'bank_transfer' }],
+                    },
                     external_reference: order.id,
                     statement_descriptor: 'TALLER ZERO',
                     ...(isLocal ? {} : { notification_url: `${siteUrl}/api/webhooks/mercadopago` }),
