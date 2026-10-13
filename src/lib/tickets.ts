@@ -462,6 +462,31 @@ export async function syncTicketOrderByReference(orderId: string): Promise<Ticke
     return outcome;
 }
 
+// Estado de una orden para quien espera su pago. Con reconcile=true además consulta a Mercado Pago por la
+// referencia de la orden: así funciona en desarrollo, donde Mercado Pago no puede enviar el aviso (webhook).
+export async function getTicketOrderStatus(accessToken: string, reconcile: boolean) {
+    let order = await prisma.ticketOrder.findUnique({
+        where: { accessToken },
+        select: { id: true, status: true, expiresAt: true, _count: { select: { tickets: true } } },
+    });
+    if (!order) return null;
+
+    if (reconcile && (order.status === 'PENDING' || order.status === 'EXPIRED')) {
+        await syncTicketOrderByReference(order.id);
+        order = await prisma.ticketOrder.findUnique({
+            where: { accessToken },
+            select: { id: true, status: true, expiresAt: true, _count: { select: { tickets: true } } },
+        });
+        if (!order) return null;
+    }
+
+    return {
+        status: order.status,
+        ready: order.status === 'PAID' && order._count.tickets > 0,
+        expiresAt: order.expiresAt.toISOString(),
+    };
+}
+
 // ---------------------------------------------------------------------------
 // Entrega por correo
 // ---------------------------------------------------------------------------

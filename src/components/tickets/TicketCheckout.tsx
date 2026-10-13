@@ -39,11 +39,17 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [payUrl, setPayUrl] = useState<string | null>(null)
+    const [accessToken, setAccessToken] = useState<string | null>(null)
+    const [isLocalhost, setIsLocalhost] = useState(false)
     const [expiresAt, setExpiresAt] = useState<number | null>(null)
     const [remaining, setRemaining] = useState(0)
 
     const total = lines.reduce((acc, l) => acc + l.price * l.quantity, 0)
     const expired = expiresAt !== null && remaining <= 0
+
+    useEffect(() => {
+        setIsLocalhost(['localhost', '127.0.0.1'].includes(window.location.hostname))
+    }, [])
 
     // Si hay sesión iniciada se propone ese correo, pero se puede cambiar
     useEffect(() => {
@@ -61,6 +67,37 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
         const interval = setInterval(tick, 1000)
         return () => clearInterval(interval)
     }, [expiresAt])
+
+    // En desarrollo Mercado Pago no puede devolverte al sitio ni avisarle al servidor, así que el pago se hace en
+    // otra pestaña y esta página lo consulta sola hasta que se acredita. En producción vuelve por su cuenta.
+    useEffect(() => {
+        if (!isLocalhost || !payUrl || !accessToken || expiresAt === null) return
+        let stopped = false
+
+        const check = async () => {
+            try {
+                const res = await fetch(`/api/tickets/orders/${accessToken}/status?reconcile=1`, { cache: 'no-store' })
+                const data = await res.json().catch(() => null)
+                if (!stopped && data?.ready) window.location.href = `/entradas/${accessToken}`
+            } catch {
+                // Sin conexión por un instante: se reintenta en el siguiente ciclo
+            }
+        }
+
+        const interval = setInterval(() => {
+            // Pasada la reserva (más un margen para pagos tardíos) se deja de consultar
+            if (Date.now() > expiresAt + 2 * 60 * 1000) clearInterval(interval)
+            else check()
+        }, 3000)
+        const onFocus = () => { if (document.visibilityState === 'visible') check() }
+        document.addEventListener('visibilitychange', onFocus)
+
+        return () => {
+            stopped = true
+            clearInterval(interval)
+            document.removeEventListener('visibilitychange', onFocus)
+        }
+    }, [isLocalhost, payUrl, accessToken, expiresAt])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -91,6 +128,7 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
                 throw new Error(result.error || 'No se pudo generar el pago.')
             }
             setPayUrl(result.initPoint)
+            setAccessToken(typeof result.accessToken === 'string' ? result.accessToken : null)
             setExpiresAt(new Date(result.expiresAt).getTime())
         } catch (err: any) {
             setError(err.message || 'Error inesperado')
@@ -100,8 +138,6 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
     }
 
     const step = payUrl ? 2 : 1
-    // En tu computador Mercado Pago no puede devolverte solo al sitio: hay que pulsar su botón "Volver al sitio"
-    const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
 
     return (
         <div className="w-full max-w-5xl mx-auto">
@@ -174,11 +210,11 @@ export function TicketCheckout({ slug, eventTitle, eventSubtitle, lines }: Props
                                     <p className="font-mono text-xs uppercase tracking-widest text-[#888] mb-2">Tus entradas están reservadas por</p>
                                     <p className="font-mono text-4xl text-white font-bold mb-6" aria-live="off">{formatRemaining(remaining)}</p>
                                     <p className="font-mono text-[10px] uppercase tracking-widest text-[#555] mb-6">Pagarás en la página segura de Mercado Pago y volverás aquí con tus entradas.</p>
-                                    <a href={payUrl!} className="block w-full text-center py-5 bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-[#ccc] transition-colors">
+                                    <a href={payUrl!} {...(isLocalhost ? { target: '_blank', rel: 'noopener noreferrer' } : {})} className="block w-full text-center py-5 bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-[#ccc] transition-colors">
                                         PAGAR CON MERCADO PAGO →
                                     </a>
                                     {isLocalhost && (
-                                        <p className="font-mono text-[10px] uppercase tracking-widest text-yellow-500 mt-4 leading-relaxed">Modo desarrollo: al terminar el pago, pulsa «Volver al sitio» en Mercado Pago para recibir tus entradas.</p>
+                                        <p className="font-mono text-[10px] uppercase tracking-widest text-yellow-500 mt-4 leading-relaxed animate-pulse">Modo desarrollo: Mercado Pago se abre en otra pestaña. Cuando termines de pagar, esta página detecta el pago sola y te lleva a tus entradas.</p>
                                     )}
                                 </>
                             )}

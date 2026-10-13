@@ -65,7 +65,12 @@ export async function POST(req: Request) {
                 requestUrl: req.url,
             });
 
-            return NextResponse.json({ preferenceId, initPoint, expiresAt: order.expiresAt.toISOString() });
+            return NextResponse.json({
+                preferenceId,
+                initPoint,
+                accessToken: order.accessToken,
+                expiresAt: order.expiresAt.toISOString(),
+            });
         } catch (error) {
             // Sin cobro no tiene sentido retener el cupo
             await cancelPendingTicketOrder(order.id);
