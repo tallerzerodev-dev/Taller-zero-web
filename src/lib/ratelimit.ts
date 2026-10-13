@@ -15,10 +15,18 @@ export type RateLimitName = keyof typeof LIMITS;
 const limiters = new Map<RateLimitName, Ratelimit>();
 let warnedMissingConfig = false;
 
+// Acepta los nombres de Upstash (UPSTASH_REDIS_REST_*) y los que crea la integración de Redis/KV de Vercel (KV_REST_API_*)
+function getRedisConfig(): { url: string; token: string } | null {
+    const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+    return url && token ? { url, token } : null;
+}
+
 function getLimiter(name: RateLimitName): Ratelimit | null {
-    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    const config = getRedisConfig();
+    if (!config) {
         if (!warnedMissingConfig) {
-            console.warn('Rate limit desactivado: faltan UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN');
+            console.warn('Rate limit desactivado: faltan UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (o KV_REST_API_URL / KV_REST_API_TOKEN)');
             warnedMissingConfig = true;
         }
         return null;
@@ -28,7 +36,7 @@ function getLimiter(name: RateLimitName): Ratelimit | null {
     if (!limiter) {
         const { requests, window } = LIMITS[name];
         limiter = new Ratelimit({
-            redis: Redis.fromEnv(),
+            redis: new Redis(config),
             limiter: Ratelimit.slidingWindow(requests, window),
             prefix: `tz:${name}`,
         });
