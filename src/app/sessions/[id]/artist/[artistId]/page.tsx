@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { FadeIn } from '@/components/ui/Animations'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: { id: string, artistId: string } }): Promise<Metadata> {
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: { params: { id: string, artis
             'hypnotic techno', 'hardgroove', 'hardhouse', 'raw techno', 'industrial techno',
             'techno sessions', 'electronic music', 'groove techno', 'techno live', 'dj techno'
         ],
-        alternates: { canonical: `https://taller-zero.cl/sessions/${params.id}/artist/${params.artistId}` },
+        alternates: { canonical: `${SITE_URL}/sessions/${params.id}/artist/${params.artistId}` },
         openGraph: {
             title: `${artist.name} | Live Set en Taller Zero`,
             description: desc,

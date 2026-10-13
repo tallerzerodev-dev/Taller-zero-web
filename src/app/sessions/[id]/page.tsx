@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 import { TrailerVideo } from '@/components/ui/TrailerVideo'
 import { ParticleBackground } from '@/components/ui/ParticleBackground'
 export const dynamic = 'force-dynamic'
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
             'hardgroove', 'hardhouse', 'raw techno', 'industrial techno', 'techno sessions',
             'electronic music', 'groove techno', 'techno live', 'bounce techno', 'dark techno'
         ],
-        alternates: { canonical: `https://taller-zero.cl/sessions/${session.id}` },
+        alternates: { canonical: `${SITE_URL}/sessions/${session.id}` },
         openGraph: {
             title: `${session.title} | Taller Zero`,
             description: `Live set RAW de ${session.title}. Featuring: ${artistNames}. Formato original desde Taller Zero.`,

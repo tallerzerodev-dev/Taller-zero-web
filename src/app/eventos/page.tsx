@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 import { FadeIn, StaggerContainer } from '@/components/ui/Animations'
 import { formatEventDate, formatEventTime, formatCLP } from '@/lib/dates'
 
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'Eventos | Entradas Taller Zero',
   description: 'Próximos eventos de Taller Zero. Compra tus entradas directo en el sitio.',
-  alternates: { canonical: 'https://taller-zero.cl/eventos' },
+  alternates: { canonical: `${SITE_URL}/eventos` },
 }
 
 // Un evento sigue listado hasta unas horas después de empezar

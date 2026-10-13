@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 import { Resend } from 'resend'
 import crypto from 'crypto'
 import { z } from 'zod'
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     const message = invitationType === 'WINNER' ? (emailTemplate.messageWinner || 'IDENTIDAD CONFIRMADA:') : (emailTemplate.messageGuest || 'IDENTIDAD CONFIRMADA:')
     const footerLines = escapeHtml(emailTemplate.footer || '').split('\n').join('<br>')
 
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://taller-zero.cl'
+    const baseUrl = SITE_URL
     const createdInvitations = []
     const failedEmails: string[] = []
 

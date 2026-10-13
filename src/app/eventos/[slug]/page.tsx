@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 import { FadeIn } from '@/components/ui/Animations'
 import { TicketSelector } from '@/components/tickets/TicketSelector'
 import { releaseExpiredReservations, toTierView } from '@/lib/tickets'
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return {
     title: `${event.title} | Entradas`,
     description,
-    alternates: { canonical: `https://taller-zero.cl/eventos/${event.slug}` },
+    alternates: { canonical: `${SITE_URL}/eventos/${event.slug}` },
     openGraph: { title: event.title, description, images: event.coverImage ? [{ url: event.coverImage }] : undefined },
   }
 }

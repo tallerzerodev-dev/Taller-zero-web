@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 import { FadeIn } from '@/components/ui/Animations'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     'techno photography', 'techno live photos', 'underground sessions photos',
     'dj set photography', 'techno archive', 'electronic music photography'
   ],
-  alternates: { canonical: 'https://taller-zero.cl/galeria' },
+  alternates: { canonical: `${SITE_URL}/galeria` },
 }
 
 export default async function GaleriaPage({

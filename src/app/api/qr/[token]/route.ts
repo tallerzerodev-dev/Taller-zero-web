@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import QRCode from 'qrcode'
+import { SITE_URL } from '@/lib/site'
 import { TICKET_CODE_PATTERN } from '@/lib/tickets'
 
 export async function GET(request: Request, { params }: { params: { token: string } }) {
@@ -11,7 +12,7 @@ export async function GET(request: Request, { params }: { params: { token: strin
       return new NextResponse('Token inválido', { status: 400 })
     }
     
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://taller-zero.cl'
+    const baseUrl = SITE_URL
     const scanUrl = `${baseUrl}/scan/${token}`
     
     const qrBuffer = await QRCode.toBuffer(scanUrl, {

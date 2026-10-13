@@ -111,7 +111,7 @@ export default async function WinnerPage({ params }: { params: { token: string }
              <p className="font-mono text-[10px] text-[#555] text-center max-w-md uppercase tracking-widest mb-8">
                ESTA ES UNA PÁGINA PRIVADA E INTRANSFERIBLE. TU CÓDIGO QR DE ACCESO ÚNICO SE ENCUENTRA EN TU CORREO. NO COMPARTAS ESTE ENLACE O TU ENTRADA SERÁ ANULADA.
              </p>
-             <Link href="https://taller-zero.cl" className="font-mono text-[10px] uppercase tracking-[0.3em] border border-[#333] text-[#888] hover:bg-white hover:text-black hover:border-white transition-colors px-6 py-3">
+             <Link href="/" className="font-mono text-[10px] uppercase tracking-[0.3em] border border-[#333] text-[#888] hover:bg-white hover:text-black hover:border-white transition-colors px-6 py-3">
                VOLVER A LA MATRIX
              </Link>
            </div>

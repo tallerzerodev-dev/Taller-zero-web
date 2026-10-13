@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer'
 import { Noise } from '@/components/ui/Noise'
 import { Providers } from '@/components/Providers'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 import './globals.css'
 export const dynamic = 'force-dynamic'
 import { Toaster } from 'react-hot-toast'
@@ -21,7 +22,7 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://taller-zero.cl'),
+  metadataBase: new URL(SITE_URL),
   title: {
     template: '%s | Taller Zero',
     default: 'Taller Zero | Sesiones de Techno en Vivo desde Chile',
@@ -47,11 +48,11 @@ export const metadata: Metadata = {
     'latin techno', 'south american techno', 'techno south america'
   ],
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
-  alternates: { canonical: 'https://taller-zero.cl' },
+  alternates: { canonical: SITE_URL },
   openGraph: {
     title: 'Taller Zero',
     description: 'Plataforma de música electrónica underground desde Chile. DJ sets RAW de techno, hypnotic techno, hardgroove y más.',
-    url: 'https://taller-zero.cl',
+    url: SITE_URL,
     siteName: 'Taller Zero',
     images: [
       {

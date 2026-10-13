@@ -1,25 +1,25 @@
 import { MercadoPagoConfig, Payment, Preference } from 'mercadopago';
 
-const PRODUCTION_URL = 'https://www.taller-zero.cl';
+import { SITE_URL } from './site';
 
 // Tipos de pago cuyo comprobante vale como boleta (Res. Ex. SII N°176/2020). El resto exige boleta manual.
 export const CARD_PAYMENT_TYPES = ['credit_card', 'debit_card', 'prepaid_card'];
 
-// En producción solo vale la credencial explícita MERCADOPAGO_ACCESS_TOKEN: así un valor "_TEST" olvidado en
-// Vercel no puede cobrar sin que nadie lo note. El respaldo MERCADOPAGO_ACCESS_TOKEN_TEST es solo para desarrollo.
+// Producción: solo vale MERCADOPAGO_ACCESS_TOKEN (la de la cuenta real), así un valor "_TEST" olvidado en Vercel
+// no puede cobrar sin que nadie lo note.
+// Desarrollo: se prefiere la credencial de PRUEBA para que probar en tu computador no cobre tarjetas reales;
+// la de producción solo se usa en desarrollo si no existe otra.
 export function getMercadoPagoAccessToken(): string {
-    const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    if (token) return token;
-    return process.env.NODE_ENV === 'production' ? '' : process.env.MERCADOPAGO_ACCESS_TOKEN_TEST || '';
+    const production = process.env.MERCADOPAGO_ACCESS_TOKEN;
+    if (process.env.NODE_ENV === 'production') return production || '';
+    return process.env.MERCADOPAGO_ACCESS_TOKEN_TEST || production || '';
 }
 
-// En producción manda NEXT_PUBLIC_SITE_URL (o el dominio oficial). En desarrollo (next dev) el sitio es
-// el que corre en tu computador: se toma de la petición, para que Mercado Pago te devuelva a localhost
-// y no a la página real. El origen de la petición solo se usa fuera de producción.
+// En producción (y si se define NEXT_PUBLIC_SITE_URL) es siempre el sitio oficial de lib/site.ts. En desarrollo
+// (next dev) es el que corre en tu computador: se toma de la petición, para que Mercado Pago te devuelva a
+// localhost y no a la página real. El origen de la petición solo se usa fuera de producción.
 export function getSiteUrl(requestUrl?: string): string {
-    const configured = process.env.NEXT_PUBLIC_SITE_URL;
-    if (configured) return configured.replace(/\/$/, '');
-    if (process.env.NODE_ENV === 'production') return PRODUCTION_URL;
+    if (process.env.NEXT_PUBLIC_SITE_URL || process.env.NODE_ENV === 'production') return SITE_URL;
     return requestUrl ? new URL(requestUrl).origin : 'http://localhost:3000';
 }
 

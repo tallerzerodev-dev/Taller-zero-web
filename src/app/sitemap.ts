@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://taller-zero.cl'
+  const baseUrl = SITE_URL
 
   // Rutas estáticas
   const staticRoutes: MetadataRoute.Sitemap = [

@@ -17,7 +17,10 @@ export default function CheckoutPage() {
     const cartItems = useCartStore(state => state.items);
 
     useEffect(() => {
-        const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY_TEST || '';
+        // Debe ser la pareja de la credencial del servidor: producción en producción; la de prueba al desarrollar
+        const publicKey = (process.env.NODE_ENV === 'production'
+            ? process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY
+            : process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY_TEST || process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY) || '';
         if (publicKey) {
             initMercadoPago(publicKey, { locale: 'es-CL' });
         }
