@@ -69,6 +69,7 @@ export default function EventosAdminPage() {
     const [venueName, setVenueName] = useState('')
     const [venueAddress, setVenueAddress] = useState('')
     const [coverImage, setCoverImage] = useState('')
+    const [coverFile, setCoverFile] = useState<File | null>(null)
     const [lineup, setLineup] = useState('')
     const [tags, setTags] = useState('')
     const [minAge, setMinAge] = useState('')
@@ -94,7 +95,7 @@ export default function EventosAdminPage() {
 
     const resetForm = () => {
         setEditing(null)
-        setTitle(''); setDescription(''); setStartsAt(''); setVenueName(''); setVenueAddress(''); setCoverImage('')
+        setTitle(''); setDescription(''); setStartsAt(''); setVenueName(''); setVenueAddress(''); setCoverImage(''); setCoverFile(null)
         setLineup(''); setTags(''); setMinAge(''); setMaxPerOrder(6); setPublished(false)
         setTiers([emptyTier(0)])
         setMessage('')
@@ -108,6 +109,7 @@ export default function EventosAdminPage() {
         setVenueName(ev.venueName)
         setVenueAddress(ev.venueAddress || '')
         setCoverImage(ev.coverImage || '')
+        setCoverFile(null)
         setLineup(ev.lineup.join('\n'))
         setTags(ev.tags.join(', '))
         setMinAge(ev.minAge ? String(ev.minAge) : '')
@@ -124,18 +126,47 @@ export default function EventosAdminPage() {
 
     const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
-        if (file) setCoverImage(URL.createObjectURL(file))
+        if (file) {
+            setCoverFile(file)
+            setCoverImage(URL.createObjectURL(file)) // solo para la vista previa
+        }
         e.target.value = ''
     }
 
-    const uploadIfBlob = async (url: string) => {
-        if (!url || !url.startsWith('blob:')) return url
-        const blob = await fetch(url).then(r => r.blob())
+    // Reduce la portada en el navegador antes de subirla (evita el límite de 4.5MB de Vercel)
+    const compressCover = async (file: File, maxWidth = 1600, quality = 0.85): Promise<Blob> => {
+        let bitmap: ImageBitmap
+        try {
+            bitmap = await createImageBitmap(file)
+        } catch {
+            throw new Error('No se pudo leer la imagen de portada. Vuelve a elegir el archivo (si lo moviste o editaste después de seleccionarlo, el navegador ya no puede leerlo).')
+        }
+        const scale = Math.min(1, maxWidth / bitmap.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(bitmap.width * scale)
+        canvas.height = Math.round(bitmap.height * scale)
+        canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+        bitmap.close()
+        const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', quality))
+        if (!blob) throw new Error('No se pudo procesar la imagen de portada.')
+        return blob
+    }
+
+    // Devuelve la URL final de la portada: sube el archivo nuevo si se eligió uno
+    const uploadCover = async (): Promise<string> => {
+        if (!coverFile) return coverImage.startsWith('blob:') ? '' : coverImage
+
         const formData = new FormData()
-        formData.append('file', blob, `evento.${blob.type.split('/')[1] || 'jpg'}`)
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        formData.append('file', await compressCover(coverFile), 'evento.jpg')
+
+        let uploadRes: Response
+        try {
+            uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+        } catch {
+            throw new Error('No se pudo conectar con el servidor para subir la portada. Revisa que el sitio siga corriendo.')
+        }
         const data = await uploadRes.json().catch(() => ({}))
-        if (!uploadRes.ok || !data.url) throw new Error(data.error || 'No se pudo subir la portada')
+        if (!uploadRes.ok || !data.url) throw new Error(data.error || `No se pudo subir la portada (error ${uploadRes.status})`)
         return data.url as string
     }
 
@@ -151,7 +182,7 @@ export default function EventosAdminPage() {
                 startsAt: fromLocalInput(startsAt),
                 venueName,
                 venueAddress,
-                coverImage: await uploadIfBlob(coverImage),
+                coverImage: await uploadCover(),
                 lineup: lineup.split('\n').map(s => s.trim()).filter(Boolean),
                 tags: tags.split(',').map(s => s.trim().replace(/^#/, '')).filter(Boolean),
                 minAge: minAge ? Number(minAge) : null,
@@ -170,11 +201,16 @@ export default function EventosAdminPage() {
                 })),
             }
 
-            const res = await fetch('/api/admin/eventos', {
-                method: editing ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            })
+            let res: Response
+            try {
+                res = await fetch('/api/admin/eventos', {
+                    method: editing ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                })
+            } catch {
+                throw new Error('No se pudo conectar con el servidor para guardar el evento. Revisa que el sitio siga corriendo.')
+            }
             const data = await res.json().catch(() => ({}))
             if (!res.ok) throw new Error(data.error || 'No se pudo guardar el evento')
 
