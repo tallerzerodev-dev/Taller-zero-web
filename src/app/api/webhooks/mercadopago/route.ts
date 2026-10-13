@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { syncOrderFromPayment } from '@/lib/payments';
+import { syncPayment } from '@/lib/payments';
 
 function signaturesMatch(expectedHex: string, receivedHex: string): boolean {
     const expected = Buffer.from(expectedHex, 'hex');
@@ -62,9 +62,9 @@ export async function POST(request: Request) {
         }
 
         // 6. La firma solo prueba que el aviso es de Mercado Pago. El estado, el monto y la orden
-        // se leen de su API dentro de syncOrderFromPayment, que además es idempotente:
+        // se leen de su API dentro de syncPayment, que además es idempotente:
         // un aviso repetido o reenviado no cambia nada.
-        const result = await syncOrderFromPayment(dataID);
+        const result = await syncPayment(dataID);
         console.log(`Webhook Mercado Pago: pago ${dataID} -> ${result.outcome}`);
 
         // Siempre responder 200 OK a Mercado Pago para confirmar recepción

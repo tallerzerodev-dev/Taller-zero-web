@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { SHIPPING_OPTIONS, SHIPPING_TYPES } from '@/lib/shipping';
-import { getMercadoPagoAccessToken, getSiteUrl } from '@/lib/payments';
+import { createCardOnlyPreference, getMercadoPagoAccessToken } from '@/lib/mercadopago';
 import { checkRateLimit } from '@/lib/ratelimit';
 
 // El navegador solo dice QUÉ quiere comprar. Precio, título, envío, total e ID de orden
@@ -120,7 +119,6 @@ export async function POST(req: Request) {
             title: [i.product.title, i.size && `Talla: ${i.size}`, i.color && `Color: ${i.color}`].filter(Boolean).join(' - '),
             quantity: i.quantity,
             unit_price: i.product.price,
-            currency_id: 'CLP',
         }));
 
         if (shippingCost > 0) {
@@ -129,47 +127,19 @@ export async function POST(req: Request) {
                 title: 'Costo de Envío',
                 quantity: 1,
                 unit_price: shippingCost,
-                currency_id: 'CLP',
             });
         }
 
-        const siteUrl = getSiteUrl();
-        // Mercado Pago bloquea explícitamente "localhost" en las back_urls y lanza el error "back_url.success must be defined".
-        // Para desarrollo local, usaremos el dominio de producción como un parche.
-        const isLocal = siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1');
-        const publicUrl = isLocal ? 'https://www.taller-zero.cl' : siteUrl;
-        const resultUrl = `${publicUrl}/checkout/result`;
-
         try {
-            const preference = new Preference(new MercadoPagoConfig({ accessToken }));
-            const preferenceResponse = await preference.create({
-                body: {
-                    items: mpItems,
-                    payer: {
-                        name: data.customerName,
-                        email: data.email,
-                    },
-                    back_urls: {
-                        success: resultUrl,
-                        failure: resultUrl,
-                        pending: resultUrl
-                    },
-                    auto_return: 'approved',
-                    // Solo tarjetas: el comprobante de pago con tarjeta vale como boleta ante el SII
-                    // (Res. Ex. SII N°176/2020). Efectivo, transferencias y cajeros exigirían boleta manual.
-                    payment_methods: {
-                        excluded_payment_types: [{ id: 'ticket' }, { id: 'atm' }, { id: 'bank_transfer' }],
-                    },
-                    external_reference: order.id,
-                    statement_descriptor: 'TALLER ZERO',
-                    ...(isLocal ? {} : { notification_url: `${siteUrl}/api/webhooks/mercadopago` }),
-                }
+            const preferenceId = await createCardOnlyPreference({
+                items: mpItems,
+                payer: { name: data.customerName, email: data.email },
+                externalReference: order.id,
+                resultPath: '/checkout/result',
             });
 
             // Return the preference ID for the Wallet component
-            return NextResponse.json({
-                preferenceId: preferenceResponse.id
-            });
+            return NextResponse.json({ preferenceId });
         } catch (error) {
             await prisma.order.update({ where: { id: order.id }, data: { status: 'CANCELLED' } });
             throw error;

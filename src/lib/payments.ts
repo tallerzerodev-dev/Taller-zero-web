@@ -1,32 +1,28 @@
-import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { prisma } from './prisma';
+import { fetchPayment, isCardPayment, type MercadoPagoPayment } from './mercadopago';
+import { syncTicketOrderFromPayment, TICKET_ORDER_REF_PREFIX } from './tickets';
 
-const PRODUCTION_URL = 'https://www.taller-zero.cl';
-
-export function getMercadoPagoAccessToken(): string {
-    return process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN_TEST || '';
-}
-
-export function getSiteUrl(): string {
-    return (process.env.NEXT_PUBLIC_SITE_URL || PRODUCTION_URL).replace(/\/$/, '');
-}
-
-// Tipos de pago cuyo comprobante vale como boleta (Res. Ex. SII N°176/2020). El resto exige boleta manual.
-const CARD_PAYMENT_TYPES = ['credit_card', 'debit_card', 'prepaid_card'];
-
-export type SyncResult =
-    | { outcome: 'paid' | 'already_processed' | 'cancelled' | 'pending' | 'amount_mismatch'; orderId: string }
-    | { outcome: 'ignored'; orderId?: undefined };
+export type SyncResult = {
+    kind: 'store' | 'tickets';
+    outcome: 'paid' | 'already_processed' | 'cancelled' | 'pending' | 'amount_mismatch' | 'ignored';
+    orderId?: string;
+};
 
 // Única vía por la que una orden cambia de estado por un pago. Todo lo que decide
 // (orden, monto, estado) sale de la respuesta de Mercado Pago, nunca del navegador.
 // Es idempotente: se puede llamar varias veces con el mismo pago.
-export async function syncOrderFromPayment(paymentId: string): Promise<SyncResult> {
-    const accessToken = getMercadoPagoAccessToken();
-    if (!accessToken) throw new Error('Credenciales de Mercado Pago no configuradas');
+export async function syncPayment(paymentId: string): Promise<SyncResult> {
+    const payment = await fetchPayment(paymentId);
 
-    const payment = await new Payment(new MercadoPagoConfig({ accessToken })).get({ id: paymentId });
+    if (payment.external_reference?.startsWith(TICKET_ORDER_REF_PREFIX)) {
+        return { kind: 'tickets', ...(await syncTicketOrderFromPayment(payment)) };
+    }
+    return { kind: 'store', ...(await syncStoreOrderFromPayment(payment)) };
+}
 
+// Órdenes de la tienda (ropa)
+async function syncStoreOrderFromPayment(payment: MercadoPagoPayment): Promise<Omit<SyncResult, 'kind'>> {
+    const paymentId = String(payment.id);
     const orderId = payment.external_reference;
     if (!orderId) return { outcome: 'ignored' };
 
@@ -61,7 +57,7 @@ export async function syncOrderFromPayment(paymentId: string): Promise<SyncResul
 
             const reviewNotes: string[] = [];
 
-            if (!payment.payment_type_id || !CARD_PAYMENT_TYPES.includes(payment.payment_type_id)) {
+            if (!isCardPayment(payment)) {
                 reviewNotes.push(`Pagada con "${payment.payment_type_id ?? 'medio desconocido'}" (no es tarjeta): el comprobante de Mercado Pago NO vale como boleta. Emitir boleta manual.`);
             }
 
@@ -100,14 +96,8 @@ export async function syncOrderFromPayment(paymentId: string): Promise<SyncResul
         return { outcome: 'paid', orderId };
     }
 
-    if (status === 'rejected' || status === 'cancelled') {
-        // Un pago rechazado no anula una orden que ya fue pagada con otro intento
-        await prisma.order.updateMany({
-            where: { id: orderId, status: 'PENDING' },
-            data: { status: 'CANCELLED' },
-        });
-        return { outcome: 'cancelled', orderId };
-    }
+    // Un pago rechazado no anula la orden: Mercado Pago deja reintentar con otra tarjeta sobre
+    // la misma preferencia, y ese segundo pago tiene que poder marcarla como pagada.
 
     if (status === 'refunded' || status === 'charged_back') {
         await prisma.$transaction(async (tx) => {

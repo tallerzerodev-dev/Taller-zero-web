@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import ClearCartOnSuccess from './ClearCartOnSuccess';
-import { syncOrderFromPayment } from '@/lib/payments';
+import { syncPayment } from '@/lib/payments';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,8 +16,8 @@ export default async function CheckoutResultPage({ searchParams }: { searchParam
     let orderId = '';
     if (/^\d{1,20}$/.test(paymentId)) {
         try {
-            const result = await syncOrderFromPayment(paymentId);
-            orderId = result.orderId || '';
+            const result = await syncPayment(paymentId);
+            if (result.kind === 'store') orderId = result.orderId || '';
         } catch (error) {
             console.error('Error verificando el pago en la página de resultado', error);
         }

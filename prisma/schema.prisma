@@ -274,3 +274,122 @@ model Oficio {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ==========================================
+// 7. EVENTOS Y TICKETERA
+// ==========================================
+
+model Event {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  description   String?  @db.Text
+  startsAt      DateTime
+  venueName     String
+  venueAddress  String?
+  coverImage    String?
+  lineup        String[] @default([])
+  tags          String[] @default([])
+  minAge        Int?
+  maxPerOrder   Int      @default(6)
+  status        String   @default("DRAFT") // DRAFT, PUBLISHED, CANCELLED
+  ticketCounter Int      @default(0) // Último folio entregado; solo se incrementa
+
+  ticketTypes   TicketType[]
+  orders        TicketOrder[]
+  tickets       Ticket[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status, startsAt])
+}
+
+// Tramo de venta (Preventa 1, General, Puerta...)
+model TicketType {
+  id         String    @id @default(cuid())
+  eventId    String
+  event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name       String
+  price      Int
+  capacity   Int
+  sold       Int       @default(0) // Entradas pagadas
+  reserved   Int       @default(0) // Entradas apartadas por órdenes aún sin pagar
+  sortOrder  Int       @default(0)
+  salesStart DateTime?
+  salesEnd   DateTime?
+  isActive   Boolean   @default(true)
+  isInfoOnly Boolean   @default(false) // Se muestra pero no se vende online (ej: Puerta)
+
+  orderItems TicketOrderItem[]
+  tickets    Ticket[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([eventId])
+}
+
+model TicketOrder {
+  id          String    @id @default(cuid())
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  buyerName   String
+  buyerEmail  String
+  buyerPhone  String
+  userEmail   String?   // Cuenta con la que se compró, si había sesión iniciada
+  status      String    @default("PENDING") // PENDING, PAID, CANCELLED, EXPIRED, REFUNDED
+  totalAmount Int
+  paymentId   String?   @unique
+  paidAt      DateTime?
+  expiresAt   DateTime  // Hasta cuándo se mantiene apartado el cupo
+  accessToken String    @unique // Abre /entradas/<token> sin iniciar sesión
+  emailSentAt DateTime?
+  reviewNote  String?   @db.Text
+
+  items       TicketOrderItem[]
+  tickets     Ticket[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([eventId, status])
+  @@index([status, expiresAt])
+  @@index([buyerEmail])
+  @@index([userEmail])
+}
+
+model TicketOrderItem {
+  id           String      @id @default(cuid())
+  orderId      String
+  order        TicketOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketTypeId String
+  ticketType   TicketType  @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  quantity     Int
+  priceAtTime  Int
+
+  @@index([orderId])
+  @@index([ticketTypeId])
+}
+
+model Ticket {
+  id           String      @id @default(cuid())
+  code         String      @unique // Lo que va en el QR
+  orderId      String
+  order        TicketOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  eventId      String
+  event        Event       @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  ticketTypeId String
+  ticketType   TicketType  @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  holderName   String
+  folio        Int
+  status       String      @default("VALID") // VALID, USED, CANCELLED
+  usedAt       DateTime?
+  usedBy       String?     // Correo del staff que validó el ingreso
+
+  createdAt    DateTime    @default(now())
+
+  @@unique([eventId, folio])
+  @@index([orderId])
+  @@index([eventId, status])
+}
